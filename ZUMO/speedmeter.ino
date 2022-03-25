@@ -4,31 +4,39 @@
 Zumo32U4Encoders encoders;
 Zumo32U4LCD lcd;
 
+// Funskjon som returnerer fart i cm/s.
 float speedMeter() {
-
+  float rev = 909.7F; //Counts per rev
+  float cm_rev = 11.624F; //Cm per rev
   static uint8_t lastDisplayTime;
-  static uint16_t countsPermeter = 17; // Dette stemmer ikke, og må måles med målebånd.
 
-
+  // Måler fart hvert 0.1 sekund
   if ((uint8_t)(millis() - lastDisplayTime) >= 100)
   {
     lastDisplayTime = millis();
 
-    int16_t countsLeft = encoders.getCountsLeft();
-    int16_t countsRight = encoders.getCountsRight();
+    //Henter antall counts fra encoder, i løpet av 0.1 sekunder.
+    float countsLeft = encoders.getCountsAndResetLeft();
+    float countsRight = encoders.getCountsAndResetRight();
 
-    int16_t countsGjennomsnitt = ((countsLeft + countsRight) / 2);
+    // Regner antall revs på 0.1 sekund.
+    float revLeft = countsLeft / rev;
+    float revRight = countsRight / rev;
 
-    int16_t countsPersekund = countsGjennomsnitt * 10;
+    // Regner om til cm/s
+    float cm_s_Left = revLeft * cm_rev;
+    float cm_s_Right = revRight * cm_rev;
 
-    int16_t mps = countsPersekund / countsPermeter;
+    // Regner gjennomsnittet til Left- og Righthastighet
+    float cm_s_avg = (cm_s_Left + cm_s_Right)/2;
 
+    // Printer hastigheten til LCD
     lcd.clear();
-    lcd.print(countsLeft);
-    lcd.gotoXY(0, 1);
-    lcd.print(countsRight);
-    // lcd.print(mps);
-
-    return mps; // returnerer meter per sekund.
+    lcd.gotoXY(0, 0);
+    lcd.print(cm_s_avg);
+    lcd.print("cm/s");
+    
+    // Returnerer average hastighet.
+    return cm_s_avg;
   }
 }
