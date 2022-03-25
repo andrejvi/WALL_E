@@ -24,8 +24,8 @@ float speedMeter() {
     float revRight = countsRight / rev;
 
     // Regner om til cm/s
-    float cm_s_Left = revLeft * cm_rev;
-    float cm_s_Right = revRight * cm_rev;
+    float cm_s_Left = revLeft * cm_rev * 10;
+    float cm_s_Right = revRight * cm_rev * 10;
 
     // Regner gjennomsnittet til Left- og Righthastighet
     float cm_s_avg = (cm_s_Left + cm_s_Right)/2;
