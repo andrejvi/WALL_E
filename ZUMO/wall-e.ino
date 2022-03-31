@@ -200,6 +200,16 @@ void loop(){
       // TODO: se om vi har funnet en brusboks (bruk avstandssensorene?)
       // TODO: vurder om vi har nok batteri til å fortsette
       //      - her kan vi også sjekke opp mot data fra nettet om det lønner seg å vente
+      
+      
+      // Printer SpeedMeter til LCD:
+      
+      float avg_speed = speedmeter();
+      
+      lcd.clear(); //CLearer LCD-displayet
+      lcd.gotoXY(1,0); //Går til rad 1
+      lcd.print(avg_speed); //Printer speedmeter
+      
     } break;
 
     case State::BRANCH_FOUND: {
