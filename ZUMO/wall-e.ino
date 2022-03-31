@@ -1,11 +1,13 @@
-#include <Wire.h>
-#include <Zumo32U4.h>
-
 /* Wall-E
  *  Kode for Zumo32U4 - Gruppeprosjekt vår 2022.
  */
 
-
+//Biblioteker:
+#include <Wire.h> //Init
+#include <EEPROM.h> //EEPROM: et minne der variabler er lagret selv når Zumo er skrudd av.
+#include <Zumo32U4.h> //Zumo bibliotek
+#include "BatteryLevel.h" //Batterifunksjoner
+#include "speedmeter.h" //Speedmeter
 
 // Konstanter
 const uint8_t CONNECTIONS_PER_NODE = 8;
