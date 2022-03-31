@@ -1,0 +1,4 @@
+{
+    "board": "pololu-a-star:avr:a-star32U4",
+    "programmer": "pololu-a-star:stk500for328PB"
+}
