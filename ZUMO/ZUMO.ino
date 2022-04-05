@@ -84,6 +84,7 @@ BranchNode node_array[TOTAL_NODES];
 State state = State::RESET;
 State state_prev;
 PID pid;
+Zumo32U4Encoders encoders;
 
 
 // Globale variabler
@@ -130,6 +131,15 @@ void loop(){
   state_prev = state;
   line_position = line_sensors.readLine(line_sensor_values);
   // TODO: gjør også en linjesensormåling som kan se etter forgreining i stien (??)
+  
+ if ((uint8_t)(millis() - lastDisplayTime) >= 100)
+  {
+    lastDisplayTime = millis();
+
+    //Henter antall counts fra encoder, i løpet av 0.1 sekunder.
+    float countsLeft = encoders.getCountsAndResetLeft();
+    float countsRight = encoders.getCountsAndResetRight();
+  }
 
 
   if ((millis() - time_since_lcd_update) > LCD_UPDATE_DELAY_MS) {
