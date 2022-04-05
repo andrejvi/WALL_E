@@ -8,6 +8,7 @@
 #include <Zumo32U4.h> //Zumo bibliotek
 #include "BatteryLevel.h" //Batterifunksjoner
 #include "speedmeter.h" //Speedmeter
+#include "searching.h" //søkefunksjon
 
 // Konstanter
 const uint8_t CONNECTIONS_PER_NODE = 8;
