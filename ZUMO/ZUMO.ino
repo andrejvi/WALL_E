@@ -218,6 +218,9 @@ void loop(){
       // Printer SpeedMeter til LCD:
       
       float avg_speed = speedmeter(countsLeft, countsRight);
+      display.gotoXY(0,0);
+      display.print(avg_speed);
+      
       
     } break;
 

@@ -9,7 +9,7 @@ float speedmeter(float countsLeft, float countsRight) {
   static uint8_t lastDisplayTime;
 
   // Måler fart hvert 0.1 sekund
-  if ((uint8_t)(millis() - lastDisplayTime) >= 100)
+  if ((millis() - lastDisplayTime) >= 100)
   {
     lastDisplayTime = millis();
 /*
