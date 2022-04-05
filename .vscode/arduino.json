@@ -1,7 +1,0 @@
-{
-    "board": "pololu-a-star:avr:a-star32U4",
-    "programmer": "pololu-a-star:stk500for328PB",
-    "output": "./build",
-    "sketch": "ZUMO\\wall-e.ino",
-    "port": "COM6"
-}
