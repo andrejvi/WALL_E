@@ -1,10 +1,38 @@
+#include <Arduino.h>
+#line 1 "c:\\Users\\avira\\Documents\\Arduino\\WALL_E\\ZUMO\\BatteryLevel.cpp"
+#include <Wire.h>
+#include <Zumo32U4.h>
+#include "BatteryLevel.h"
+
+
+Zumo32U4Encoders encoders;
+Zumo32U4LCD lcd;
+Zumo32U4Motors motors;
+unsigned long batteryLife = 2000; // Total batteri i [mAh]
+
+float batteryLevel(unsigned long avgSpeed){ // Funksjon for batterinivå
+  batteryLife -= (5 * avgSpeed); // hastigheten batteriet forbrukes med, basert på fart.
+
+  if (batteryLife >= 0){ // Så lenge batteriet er over 0 returneres batterinivået, og printes til LCD
+    lcd.gotoXY(0, 1);
+    lcd.print(batteryLife);
+    return batteryLife;
+    }
+  else{ // Når batterinivået når 0, returnerer funksjonen 0, og skrivet ut "Empty" på LCD skjermen
+    lcd.gotoXY(0, 1);
+    lcd.print("Empty");
+    return 0;
+    }
+  }
+
+#line 1 "c:\\Users\\avira\\Documents\\Arduino\\WALL_E\\ZUMO\\wall-e.ino"
 /* Wall-E
  *  Kode for Zumo32U4 - Gruppeprosjekt vår 2022.
  */
 
 //Biblioteker:
 #include <Wire.h> //Init
-#include "EEPROM.h" //EEPROM: et minne der variabler er lagret selv når Zumo er skrudd av.
+#include <EEPROM.h> //EEPROM: et minne der variabler er lagret selv når Zumo er skrudd av.
 #include <Zumo32U4.h> //Zumo bibliotek
 #include "BatteryLevel.h" //Batterifunksjoner
 #include "speedmeter.h" //Speedmeter
@@ -84,7 +112,6 @@ BranchNode node_array[TOTAL_NODES];
 State state = State::RESET;
 State state_prev;
 PID pid;
-Zumo32U4Encoders encoders;
 
 
 // Globale variabler
@@ -101,9 +128,6 @@ char strbuf_8[8];
 int32_t max_speed = MAX_SPEED;
 int32_t left_speed = 0;
 int32_t right_speed = 0;
-int32_t lastDisplayTime;
-float countsLeft;
-float countsRight;
 
 // PID-regulator-variabler.
 // TODO: lag en struct/class for innstilling av PID-regulator så det ikke er så mye rot her
@@ -134,15 +158,6 @@ void loop(){
   state_prev = state;
   line_position = line_sensors.readLine(line_sensor_values);
   // TODO: gjør også en linjesensormåling som kan se etter forgreining i stien (??)
-  
- if ((uint8_t)(millis() - lastDisplayTime) >= 100)
-  {
-    lastDisplayTime = millis();
-
-    //Henter antall counts fra encoder, i løpet av 0.1 sekunder.
-    countsLeft = encoders.getCountsAndResetLeft();
-    countsRight = encoders.getCountsAndResetRight();
-  }
 
 
   if ((millis() - time_since_lcd_update) > LCD_UPDATE_DELAY_MS) {
@@ -217,7 +232,11 @@ void loop(){
       
       // Printer SpeedMeter til LCD:
       
-      float avg_speed = speedmeter(countsLeft, countsRight);
+      float avg_speed = speedmeter();
+      
+      lcd.clear(); //CLearer LCD-displayet
+      lcd.gotoXY(1,0); //Går til rad 1
+      lcd.print(avg_speed); //Printer speedmeter
       
     } break;
 
@@ -339,3 +358,4 @@ void loop(){
   // Plusser på "1" til "update_counter", med mindre den er MAX_INT, da går den til 0
   update_counter = (update_counter == 65535) ? 0 : update_counter + 1;
 }
+

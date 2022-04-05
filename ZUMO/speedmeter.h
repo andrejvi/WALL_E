@@ -6,4 +6,4 @@
 
 //Funksjonene som kan brukes i hovedfilen
 
-void speedometer(); //Speedometer (cm/s)
+float speedmeter(float countsLeft, float countsRight); //Speedmeter (cm/s)
