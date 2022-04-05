@@ -104,6 +104,7 @@ int32_t right_speed = 0;
 int32_t lastDisplayTime;
 float countsLeft;
 float countsRight;
+float counts_no_reset;
 
 // PID-regulator-variabler.
 // TODO: lag en struct/class for innstilling av PID-regulator så det ikke er så mye rot her
@@ -143,6 +144,9 @@ void loop(){
     countsLeft = encoders.getCountsAndResetLeft();
     countsRight = encoders.getCountsAndResetRight();
   }
+
+    //Teller antall counts siden programstart
+    counts_no_reset = (encoders.getCountsLeft()+ encoders.getCountsRight()) / 2;
 
 
   if ((millis() - time_since_lcd_update) > LCD_UPDATE_DELAY_MS) {
@@ -220,6 +224,19 @@ void loop(){
       float avg_speed = speedmeter(countsLeft, countsRight);
       display.gotoXY(0,0);
       display.print(avg_speed);
+
+      //Printer batterinivaa til LCD
+      display.gotoXY(0,1);
+      display.print(batteryLevel(counts_no_reset));
+
+      if (batteryLevel(counts_no_reset) < 200){
+        // Kjør til ladestasjon
+        state = State::RETURN_TO_STATION;
+        }
+      else if (batteryLevel(counts_no_reset) == 0){
+        //dødt batteri
+        state = State::STOPPED;
+        }
       
       
     } break;

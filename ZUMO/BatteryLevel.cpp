@@ -3,13 +3,13 @@
 #include "BatteryLevel.h"
 #include "speedmeter.h"
 
-unsigned long batteryLife = 2000; // Total batteri i [mAh]
+float batteryLife = 2000; // Total batteri i [mAh]
 
-float batteryLevel(unsigned long avgSpeed){ // Funksjon for batterinivå
-  batteryLife -= (5 * avgSpeed); // hastigheten batteriet forbrukes med, basert på fart.
+int batteryLevel(float counts_no_reset){ // Funksjon for batterinivå
+  batteryLife -= (0.001 * counts_no_reset); // hastigheten batteriet forbrukes med, basert på fart.
 
   if (batteryLife >= 0){ // Så lenge batteriet er over 0 returneres batterinivået, og printes til LCD
-    return batteryLife;
+    return round(batteryLife);
     }
   else{ // Når batterinivået når 0, returnerer funksjonen 0, og skrivet ut "Empty" på LCD skjermen
     return 0;
