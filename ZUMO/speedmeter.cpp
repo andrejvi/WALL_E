@@ -15,10 +15,11 @@ float speedMeter() {
   if ((uint8_t)(millis() - lastDisplayTime) >= 100)
   {
     lastDisplayTime = millis();
-
+/*
     //Henter antall counts fra encoder, i løpet av 0.1 sekunder.
     float countsLeft = encoders.getCountsAndResetLeft();
     float countsRight = encoders.getCountsAndResetRight();
+*/
 
     // Regner antall revs på 0.1 sekund.
     float revLeft = countsLeft / rev;
