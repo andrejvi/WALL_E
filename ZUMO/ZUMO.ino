@@ -13,7 +13,7 @@
 // Konstanter
 const uint8_t CONNECTIONS_PER_NODE = 8;
 const uint8_t TOTAL_NODES = 8;
-const uint8_t NUM_SENSORS = 5;
+#define NUM_SENSORS 5
 const int8_t LCD_UPDATE_DELAY_MS = 10;
 const unsigned long CALIBRATION_TIME_MS = 4000;
 const int8_t PID_DEFAULT_P = 3;
@@ -220,6 +220,9 @@ void loop(){
       // TODO: vurder om vi har nok batteri til å fortsette
       //      - her kan vi også sjekke opp mot data fra nettet om det lønner seg å vente
       
+      //funksjon som kjører rundt innenfor en border
+      //searching();
+
       
       // Printer SpeedMeter til LCD:
       
