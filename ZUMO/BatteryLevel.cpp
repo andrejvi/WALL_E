@@ -1,6 +1,7 @@
 #include <Wire.h>
 #include <Zumo32U4.h>
 #include "BatteryLevel.h"
+#include "speedmeter.h"
 
 
 Zumo32U4Encoders encoders;
