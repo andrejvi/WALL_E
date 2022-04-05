@@ -19,6 +19,7 @@ const int8_t PID_DEFAULT_P = 3;
 const int8_t PID_DEFAULT_I = 0;
 const int8_t PID_DEFAULT_D = 6;
 const int16_t MAX_SPEED = 270;
+const int16_t LOW_BATTERY = 200;
 
 
 struct BranchNode {
@@ -229,7 +230,7 @@ void loop(){
       display.gotoXY(0,1);
       display.print(batteryLevel(counts_no_reset));
 
-      if (batteryLevel(counts_no_reset) < 200){
+      if (batteryLevel(counts_no_reset) < LOW_BATTERY){
         // Kjør til ladestasjon
         state = State::RETURN_TO_STATION;
         }
