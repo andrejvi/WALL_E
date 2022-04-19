@@ -4,7 +4,7 @@
 
 // This might need to be tuned for different lighting conditions,
 // surfaces, etc.
-#define QTR_THRESHOLD     4000  // microseconds
+#define QTR_THRESHOLD     900  // microseconds
 
 // These might need to be tuned for different motor types.
 #define REVERSE_SPEED     150  // 0 is stopped, 400 is full speed
@@ -21,7 +21,7 @@ void searching(int16_t line_sensor_values[NUM_SENSORS]) {
 
   line_sensors.read(line_sensor_values);
 
-  if (line_sensor_values[0] < QTR_THRESHOLD)
+  if (line_sensor_values[0] > QTR_THRESHOLD)
   {
     // If leftmost sensor detects line, reverse and turn to the
     // right.
@@ -31,7 +31,7 @@ void searching(int16_t line_sensor_values[NUM_SENSORS]) {
     delay(TURN_DURATION);
     motors.setSpeeds(FORWARD_SPEED, FORWARD_SPEED);
   }
-  else if (line_sensor_values[NUM_SENSORS - 1] < QTR_THRESHOLD)
+  else if (line_sensor_values[NUM_SENSORS - 1] > QTR_THRESHOLD)
   {
     // If rightmost sensor detects line, reverse and turn to the
     // left.
