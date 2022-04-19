@@ -4,22 +4,22 @@
 
 // This might need to be tuned for different lighting conditions,
 // surfaces, etc.
-#define QTR_THRESHOLD     1000  // microseconds
+#define QTR_THRESHOLD     4000  // microseconds
 
 // These might need to be tuned for different motor types.
-#define REVERSE_SPEED     200  // 0 is stopped, 400 is full speed
-#define TURN_SPEED        200
-#define FORWARD_SPEED     200
-#define REVERSE_DURATION  200  // ms
-#define TURN_DURATION     300  // ms
+#define REVERSE_SPEED     150  // 0 is stopped, 400 is full speed
+#define TURN_SPEED        150
+#define FORWARD_SPEED     150
+#define REVERSE_DURATION  400  // ms
+#define TURN_DURATION     600  // ms
 
 
 
-void searching() {
+void searching(int16_t line_sensor_values[NUM_SENSORS]) {
   //TODO: lage en funksjon som kjører rundt og snur når den treffer en linje:
   //TODO: Hvis den finner en bruskanne, ta den med til avfallstsjon:
 
-  lineSensors.read(line_sensor_values);
+  line_sensors.read(line_sensor_values);
 
   if (line_sensor_values[0] < QTR_THRESHOLD)
   {

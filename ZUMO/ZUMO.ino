@@ -221,7 +221,7 @@ void loop(){
       //      - her kan vi også sjekke opp mot data fra nettet om det lønner seg å vente
       
       //funksjon som kjører rundt innenfor en border
-      //searching();
+      searching(line_sensor_values[NUM_SENSORS]);
 
       
       // Printer SpeedMeter til LCD:

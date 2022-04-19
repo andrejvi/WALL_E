@@ -5,7 +5,7 @@
 
 // Globale objekter
 extern Zumo32U4Motors motors;
-extern Zumo32U4LineSensors lineSensors;
+extern Zumo32U4LineSensors line_sensors;
 
 // Variabler
 #define NUM_SENSORS 5
@@ -13,4 +13,4 @@ extern int16_t line_sensor_values[NUM_SENSORS];
 
 
 // Funksjoner
-void searching();
+void searching(int16_t line_sensor_values[NUM_SENSORS]);
