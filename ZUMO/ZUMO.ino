@@ -1,6 +1,6 @@
 /* Wall-E
- *  Kode for Zumo32U4 - Gruppeprosjekt vår 2022.
- */
+    Kode for Zumo32U4 - Gruppeprosjekt vår 2022.
+*/
 
 //Biblioteker:
 #include <Wire.h> //Init
@@ -9,6 +9,9 @@
 #include "BatteryLevel.h" //Batterifunksjoner
 #include "speedmeter.h" //Speedmeter
 #include "searching.h" //søkefunksjon
+#include "ZumoState.h"
+
+#define State ZumoState
 
 // Konstanter
 const uint8_t CONNECTIONS_PER_NODE = 8;
@@ -35,28 +38,10 @@ struct BranchNode {
 
 
 
-enum State : uint8_t {
-  // Wall-E vil alltid være i én av disse tilstandene
-  RESET = 0,
-  CALIBRATE_LINESENSORS,
-  WAIT_FOR_START_SIGNAL,
-  MOVING,
-  BRANCH_FOUND,
-  MAP_BRANCHPOINT,
-  RETURN_TO_STATION,
-  BRAKING,
-  STOPPED,
-  REFUELING,
-  SPIRALLING,
-  PID_TUNE
-};
-
-
-
 struct PID {
   // PID-regulator. Forsterkningskonstanter Kp, Ki og Kd er
-  //    gitt i hundredeler.
-  
+  //    gitt i tideler.
+
   int8_t Kp = PID_DEFAULT_P;
   int8_t Ki = PID_DEFAULT_I;
   int8_t Kd = PID_DEFAULT_D;
@@ -67,7 +52,7 @@ struct PID {
     int32_t _I = Ki * (new_error + last_error) / 2;
     int32_t _D = Kd * (new_error - last_error);
     last_error = new_error;
-    
+
     return (_P + _I + _D) / 10;
   }
 };
@@ -81,7 +66,6 @@ Zumo32U4Motors motors;
 Zumo32U4ButtonA button_a;
 Zumo32U4ButtonB button_b;
 Zumo32U4ButtonC button_c;
-Zumo32U4LCD display;
 BranchNode node_array[TOTAL_NODES];
 State state = State::RESET;
 State state_prev;
@@ -118,28 +102,31 @@ enum PidTuneState : uint16_t {P, I, D, V} pid_tune_state;
 
 
 
-void setup(){
-  // TODO: Opprett kommunikasjon med ESP32 på ryggen til zumoen vha. serial
+void setup() {
+  Serial1.begin(115200);
   line_sensors.initThreeSensors();
   //proxSensors.initThreeSensors();
   update_counter = 0;
 }
 
 
-void loop(){
-  // TODO: sende batteridata til ESP32
-  // TODO: sende Wall-E's tilstand (state) til ESP32
-  // TODO: motta sensornodeinformasjon fra ESP32
-  // TODO: motta strømpriser osv fra ESP32
-
-
-  
-  // Operasjoner som gjøres hver gang før tilstandsmaskinen oppdateres
+void loop() {
+  ///////////////////////////////////////////////////////////////////////////////
+  //                                                                           //
+  //     Operasjoner som kjøres hver runde før tilstandsmaskinen oppdateres    //
+  //                                                                           //
+  ///////////////////////////////////////////////////////////////////////////////
   state_prev = state;
+
+  if (Serial1.available() > 0) {
+    // TODO: få denne til å ta imot pakka og ikke bare en "State" (uint8_t)
+    state = Serial1.read();
+  }
+
   line_position = line_sensors.readLine(line_sensor_values);
   // TODO: gjør også en linjesensormåling som kan se etter forgreining i stien (??)
-  
- if ((uint8_t)(millis() - lastDisplayTime) >= 100)
+
+  if ((uint8_t)(millis() - lastDisplayTime) >= 100)
   {
     lastDisplayTime = millis();
 
@@ -148,216 +135,222 @@ void loop(){
     countsRight = encoders.getCountsAndResetRight();
   }
 
-    //Teller antall counts siden programstart
-    counts_no_reset = (encoders.getCountsLeft()+ encoders.getCountsRight()) / 2;
+  //Teller antall counts siden programstart
+  counts_no_reset = (encoders.getCountsLeft() + encoders.getCountsRight()) / 2;
 
 
-  if ((millis() - time_since_lcd_update) > LCD_UPDATE_DELAY_MS) {
-    display.clear();
-  }
 
   // Gå til og fra stemming av PID-regulator dersom knapp B og C er trykka ned
-  if (button_b.isPressed() && button_c.isPressed()) { state = State::PID_TUNE; }
-  
+  if (button_b.isPressed() && button_c.isPressed()) {
+    state = State::PID_TUNE;
+  }
 
 
-  // Oppdater tilstandsmaskinen
+
+  ///////////////////////////////////////////////////////////////////////////////
+  //                                                                           //
+  //                       Oppdaterer Tilstandsmaskinen                        //
+  //                                                                           //
+  ///////////////////////////////////////////////////////////////////////////////
   switch (state) {
     case State::RESET: {
-      // Wall-E commit sudoku
+        // Wall-E commit sudoku
 
-      // Resetter "node_array" med null
-      memset(&node_array, 0, sizeof(node_array));
-
-      // Kjører kalibrering om det ikke allerede er gjort
-      if (!linesensors_calibrated_since_last_powerup){
-        time_0 = millis();
-        state = State::CALIBRATE_LINESENSORS;
-      }
-    } break;
+        // Kjører kalibrering om det ikke allerede er gjort
+        if (!linesensors_calibrated_since_last_powerup) {
+          time_0 = millis();
+          state = State::CALIBRATE_LINESENSORS;
+        }
+      } break;
 
     case State::CALIBRATE_LINESENSORS: {
-      // Wall-E kjører kalibreringsprosedyren
-      
-      // Kjør rundt i ring i 4 sekunder
-      left_speed = -100;
-      right_speed = 100;
-      line_sensors.calibrate();
-      
-      if ((millis() - time_0) > CALIBRATION_TIME_MS) {
-        left_speed, right_speed = 0;
-        state = State::WAIT_FOR_START_SIGNAL;
-      }
-      display.gotoXY(0,0);
-      display.print(F("Calib."));
-    } break;
+        // Wall-E kjører kalibreringsprosedyren
+
+        // Kjør rundt i ring i 4 sekunder
+        left_speed = -100;
+        right_speed = 100;
+        line_sensors.calibrate();
+
+        if ((millis() - time_0) > CALIBRATION_TIME_MS) {
+          left_speed, right_speed = 0;
+          state = State::WAIT_FOR_START_SIGNAL;
+        }
+
+        motors.setSpeeds(left_speed, right_speed);
+      } break;
 
     case State::WAIT_FOR_START_SIGNAL: {
-      // Wall-E venter på signal om å starte
+        // Wall-E venter på signal om å starte
 
-      // Vent på at noen trykker på knapp A
-      if (button_a.getSingleDebouncedPress()) { state = State::MOVING; }
-      if (button_b.getSingleDebouncedPress()) { state = State::PID_TUNE; }
+        // Vent på at noen trykker på knapp A
+        if (button_a.getSingleDebouncedPress()) {
+          state = State::MOVING;
+        }
+        if (button_b.getSingleDebouncedPress()) {
+          state = State::PID_TUNE;
+        }
 
-      display.gotoXY(0,0);
-      display.print(F("A: move"));
-      display.gotoXY(0,1);
-      display.print(F("B: tune"));
 
-      left_speed = 0;
-      right_speed = 0;
+        left_speed = 0;
+        right_speed = 0;
 
-      // TODO: aksepter startsignal fra ESP32
-    } break;
-    
+        // TODO: aksepter startsignal fra ESP32
+      } break;
+
     case State::MOVING: {
-      // Wall-E kjører langs en sti
+        // Wall-E kjører langs en sti
 
-      // TODO: legg til styring vha. PID-regulator her når den fungerer bra
-      
-      
-      // TODO: se om vi er over en forgreining -> gå til BRANCH_FOUND
-      // TODO: se om vi har funnet en brusboks (bruk avstandssensorene?)
-      // TODO: vurder om vi har nok batteri til å fortsette
-      //      - her kan vi også sjekke opp mot data fra nettet om det lønner seg å vente
-      
-      //funksjon som kjører rundt innenfor en border
-      searching(line_sensor_values[NUM_SENSORS]);
-      
-      // Printer SpeedMeter til LCD:
-      
-      float avg_speed = speedmeter(countsLeft, countsRight);
-      display.gotoXY(0,0);
-      display.print(avg_speed);
+        // TODO: legg til styring vha. PID-regulator her når den fungerer bra
 
-      //Printer batterinivaa til LCD
-      //display.gotoXY(0,1);
-      //display.print(batteryLevel(counts_no_reset));
 
-      if (batteryLevel(counts_no_reset) < LOW_BATTERY){
-        // Kjør til ladestasjon
-        state = State::RETURN_TO_STATION;
+        // TODO: se om vi er over en forgreining -> gå til BRANCH_FOUND
+        // TODO: se om vi har funnet en brusboks (bruk avstandssensorene?)
+        // TODO: vurder om vi har nok batteri til å fortsette
+        //      - her kan vi også sjekke opp mot data fra nettet om det lønner seg å vente
+
+        //funksjon som kjører rundt innenfor en border
+        searching(line_sensor_values[NUM_SENSORS]);
+
+        // Printer SpeedMeter til LCD:
+
+        float avg_speed = speedmeter(countsLeft, countsRight);
+
+        //Printer batterinivaa til LCD
+        //display.gotoXY(0,1);
+        //display.print(batteryLevel(counts_no_reset));
+
+        if (batteryLevel(counts_no_reset) < LOW_BATTERY) {
+          // Kjør til ladestasjon
+          state = State::RETURN_TO_STATION;
         }
-      else if (batteryLevel(counts_no_reset) == 0){
-        //dødt batteri
-        state = State::STOPPED;
+        else if (batteryLevel(counts_no_reset) == 0) {
+          //dødt batteri
+          state = State::STOPPED;
         }
-      
-      
-    } break;
+
+
+      } break;
 
     case State::BRANCH_FOUND: {
-      // Wall-E fant en forgreining i stien
-      // TODO: sjekk om denne forgreininga allerede er registrert i "node_array",
-      //      - hvis ikke, gå til MAP_BRANCHPOINT
-      // TODO: velg hvilken vei vi skal gå
-    } break;
+        // Wall-E fant en forgreining i stien
+        // TODO: sjekk om denne forgreininga allerede er registrert i "node_array",
+        //      - hvis ikke, gå til MAP_BRANCHPOINT
+        // TODO: velg hvilken vei vi skal gå
+      } break;
 
     case State::MAP_BRANCHPOINT: {
-      // Wall-E har funnet en ny forgreining og kartlegger den
-      // TODO: rygg litt, snu 90 grader til høgre, kjør en hel runde rundt og gjør målinger
-      // TODO: oppdater "node_array" på grunnlag av disse målingene
-    } break;
+        // Wall-E har funnet en ny forgreining og kartlegger den
+        // TODO: rygg litt, snu 90 grader til høgre, kjør en hel runde rundt og gjør målinger
+        // TODO: oppdater "node_array" på grunnlag av disse målingene
+      } break;
 
     case State::RETURN_TO_STATION: {
-      // Wall-E kjører til ladestasjonen
-      // TODO: lag en plan for å komme til ladestasjonen
-      //      - i praksis, bruk "node_array" for å finne den raskeste veien hjem
-      // TODO: pass på at vi følger linja
-    } break;
-    
+        // Wall-E kjører til ladestasjonen
+        // TODO: lag en plan for å komme til ladestasjonen
+        //      - i praksis, bruk "node_array" for å finne den raskeste veien hjem
+        // TODO: pass på at vi følger linja
+      } break;
+
     case State::BRAKING: {
-      // Wall-E bremser ned motorene
-      // TODO: skru av motorene gradvis over et par-fem runder
-    } break;
+        // Wall-E bremser ned motorene
+        // TODO: skru av motorene gradvis over et par-fem runder
+      } break;
 
     case State::STOPPED: {
-      // Wall-E står stille
-      // TODO: start opp igjen på grunnlag av visse kriterier
-    } break;
+        // Wall-E står stille
+        // TODO: start opp igjen på grunnlag av visse kriterier
+      } break;
 
     case State::REFUELING: {
-      // Wall-E er på ladestasjonen og fyller opp batteriene
-      // TODO: start opp igjen når batteriene er fulle
-    } break;
+        // Wall-E er på ladestasjonen og fyller opp batteriene
+        // TODO: start opp igjen når batteriene er fulle
+      } break;
 
     case State::SPIRALLING: {
-      // Wall-E kjører rundt i en spiral for å se etter linja. Denne tilstanden
-      //        brukes både for å treffe en ny forgreining og for å finne tilbake
-      //        til stien om Wall-E har mista den.
-      // TODO: kjør rundt i stadig større spiral
-      // TODO: sjekk måling om vi er over linja igjen
-    } break;
+        // Wall-E kjører rundt i en spiral for å se etter linja. Denne tilstanden
+        //        brukes både for å treffe en ny forgreining og for å finne tilbake
+        //        til stien om Wall-E har mista den.
+        // TODO: kjør rundt i stadig større spiral
+        // TODO: sjekk måling om vi er over linja igjen
+      } break;
 
     case State::PID_TUNE: {
-      // Innstillingsmodus for PID-regulatoren.
-      //   - press "A" for å velge parameter
-      //   - press "B" eller "C" for å senke eller øke parameteret
+        // Innstillingsmodus for PID-regulatoren.
+        //   - press "A" for å velge parameter
+        //   - press "B" eller "C" for å senke eller øke parameteret
 
-      display.gotoXY(0, 0);
+        // Endre verdi med "B" og "C"
+        adjustment = 0;
+        if (button_b.getSingleDebouncedPress()) {
+          adjustment = -adjustment_amount;
+        }
+        if (button_c.getSingleDebouncedPress()) {
+          adjustment = adjustment_amount;
+        }
 
-      // Endre verdi med "B" og "C"
-      adjustment = 0;
-      if (button_b.getSingleDebouncedPress()) {adjustment = -adjustment_amount; }
-      if (button_c.getSingleDebouncedPress()) {adjustment = adjustment_amount; }
-      
-      switch (pid_tune_state) {
-        case PidTuneState::P: {
-          display.print(F("P:"));
-          pid.Kp += adjustment;
-          sprintf(strbuf, "%d", pid.Kp);
-          if (button_a.getSingleDebouncedPress()) { pid_tune_state = PidTuneState::I; }
-        } break;
+        switch (pid_tune_state) {
+          case PidTuneState::P: {
+              pid.Kp += adjustment;
+              sprintf(strbuf, "%d", pid.Kp);
+              if (button_a.getSingleDebouncedPress()) {
+                pid_tune_state = PidTuneState::I;
+              }
+            } break;
+
+          case PidTuneState::I: {
+              pid.Ki += adjustment;
+              sprintf(strbuf, "%d", pid.Ki);
+              if (button_a.getSingleDebouncedPress()) {
+                pid_tune_state = PidTuneState::D;
+              }
+            } break;
+
+          case PidTuneState::D: {
+              pid.Kd += adjustment;
+              sprintf(strbuf, "%d", pid.Kd);
+              if (button_a.getSingleDebouncedPress()) {
+                pid_tune_state = PidTuneState::V;
+              }
+            } break;
+
+          case PidTuneState::V: {
+              max_speed += adjustment * 10;
+              sprintf(strbuf, "%d", max_speed);
+              if (button_a.getSingleDebouncedPress()) {
+                pid_tune_state = PidTuneState::P;
+              }
+            } break;
+        }
         
-        case PidTuneState::I: {
-          display.print(F("I:"));
-          pid.Ki += adjustment;
-          sprintf(strbuf, "%d", pid.Ki);
-          if (button_a.getSingleDebouncedPress()) { pid_tune_state = PidTuneState::D; }
-        } break;
-        
-        case PidTuneState::D: {
-          display.print(F("D:"));
-          pid.Kd += adjustment;
-          sprintf(strbuf, "%d", pid.Kd);
-          if (button_a.getSingleDebouncedPress()) { pid_tune_state = PidTuneState::V; }
-        } break;
+        // Regn ut PID-transferfunksjon
+        error = line_position - 2000;
+        speed_difference = pid.GetOutput(error);
 
-        case PidTuneState::V: {
-          display.print(F("V:"));
-          max_speed += adjustment*10;
-          sprintf(strbuf, "%d", max_speed);
-          if (button_a.getSingleDebouncedPress()) { pid_tune_state = PidTuneState::P; }
-        } break;
-      }
+        left_speed = constrain((max_speed + speed_difference), -max_speed / 3, max_speed);
+        right_speed = constrain((max_speed - speed_difference), -max_speed / 3, max_speed);
+        motors.setSpeeds(left_speed, right_speed);
 
-      // Print talla til skjermen
-      display.gotoXY(3, 0);
-      display.print(strbuf);
-      display.gotoXY(0, 1);
-      sprintf(strbuf_8, "%d", error);
-      display.print(strbuf_8);
-
-      // Regn ut PID-transferfunksjon
-      error = line_position - 2000;
-      speed_difference = pid.GetOutput(error);
-    
-      left_speed = constrain((max_speed + speed_difference), -max_speed/3, max_speed);
-      right_speed = constrain((max_speed - speed_difference), -max_speed/3, max_speed);
-    
       } break;
   }
 
-  // Operasjoner som gjøres hver gang etter tilstandsmaskinen oppdateres
+  ///////////////////////////////////////////////////////////////////////////////
+  //                                                                           //
+  //    Operasjoner som kjøres hver runde etter tilstandsmaskinen oppdateres   //
+  //                                                                           //
+  ///////////////////////////////////////////////////////////////////////////////
   state_has_changed = (state_prev != state);
-  if (state_has_changed) { time_in_state = millis(); }
+
   
+  if (state_has_changed) {
+    time_in_state = millis();
+    Serial1.write(state);
+
+    motors.setSpeeds(0,0);
+  }
+
 
   //motors.setSpeeds(left_speed, right_speed);
-  if ((millis() - time_since_lcd_update) > LCD_UPDATE_DELAY_MS) {
-    display.display();
-    time_since_lcd_update = millis();
-  }
+
 
   // TODO: basert på ny informasjon kan vi oppdatere "node_array" her
 

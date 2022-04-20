@@ -2,8 +2,9 @@
 #include <WiFi.h>
 #include <TFT_eSPI.h>
 #include <SPI.h>
+#include "ZumoState.h"
+#include "Package.h"    // Disse må kopieres manuelt over i denne mappa..
 
-TFT_eSPI tft = TFT_eSPI();
 
 
 // VIKTIG! Denne linja er alt du trenger å endre for å flashe de to forskjellige ESP'ene.
@@ -39,76 +40,10 @@ uint8_t PEER_MAC_ADDR[] = {0x84, 0xCC, 0xA8, 0x61, 0x56, 0x88}; // (ESP med skei
 #endif
 
 
-// TODO: lag headerfil for denne -- ZumoState.h
-enum ZumoState : uint8_t {
-  // Wall-E vil alltid være i én av disse tilstandene
-  RESET = 0,
-  CALIBRATE_LINESENSORS,
-  WAIT_FOR_START_SIGNAL,
-  MOVING,
-  BRANCH_FOUND,
-  MAP_BRANCHPOINT,
-  RETURN_TO_STATION,
-  BRAKING,
-  STOPPED,
-  REFUELING,
-  SPIRALLING,
-  PID_TUNE
-};
-
-
-// TODO: lag headerfil for denne -- Package.h
-/*
-   Package.h    ---> datastruktur for pakke som sendes over seriell- og radiokommunikasjon.
-
-   Idéer for framtidig innhold:
-    - Batteritilstand (lader ut eller lader opp)
-    - Batteristatus (ladningsforhold)
-    - PID-reguleringskonstanter, Kp, Ki, Kd
-    - Systemstatus (kjøretid, kjørelengde [cm], temperatur i MCU-kjerne)
-    -
-*/
-typedef struct Package {
-  ZumoState zumo_state;
-} Package;
-
-
-
-// TODO: denne burde vel også legges til i ZumoState.h
-String zumo_state_to_str(ZumoState state) {
-  switch (state) {
-    case ZumoState::RESET:
-      return "RESET";
-    case ZumoState::CALIBRATE_LINESENSORS:
-      return "CALIBRATE_LINESENSORS";
-    case ZumoState::WAIT_FOR_START_SIGNAL:
-      return "WAIT_FOR_START_SIGNAL";
-    case ZumoState::MOVING:
-      return "MOVING";
-    case ZumoState::BRANCH_FOUND:
-      return "BRANCH_FOUND";
-    case ZumoState::MAP_BRANCHPOINT:
-      return "MAP_BRANCHPOINT";
-    case ZumoState::RETURN_TO_STATION:
-      return "RETURN_TO_STATION";
-    case ZumoState::BRAKING:
-      return "BRAKING";
-    case ZumoState::STOPPED:
-      return "STOPPED";
-    case ZumoState::REFUELING:
-      return "REFUELING";
-    case ZumoState::SPIRALLING:
-      return "SPIRALLING";
-    case ZumoState::PID_TUNE:
-      return "PID_TUNE";
-
-    default:
-      return "unknown state";
-  }
-}
 
 
 // Globale objekter
+TFT_eSPI tft = TFT_eSPI();
 esp_now_peer_info_t peerInfo;
 Package serial_received_package;
 Package radio_received_package;
