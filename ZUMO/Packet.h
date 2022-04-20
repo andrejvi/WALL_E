@@ -2,7 +2,7 @@
 
 #include "ZumoState.h"
 /*
-   Package.h    ---> datastruktur for pakke som sendes over seriell- og radiokommunikasjon.
+   Packet.h    ---> datastruktur for pakke som sendes over seriell- og radiokommunikasjon.
 
    Idéer for framtidig innhold:
     - Batteritilstand (lader ut eller lader opp)

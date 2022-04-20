@@ -5,15 +5,17 @@ enum ZumoState : uint8_t {
   RESET = 0,
   CALIBRATE_LINESENSORS,
   WAIT_FOR_START_SIGNAL,
-  MOVING,
-  BRANCH_FOUND,
-  MAP_BRANCHPOINT,
+  SEARCHING_FOR_BOX,
+  FOUND_BOX,
+  TURNING_TO_BOX,
+  LOST_TRACK_OF_BOX,
+  MOVING_TO_BOX,
+  GRABBING_BOX,
+  MOVE_TO_BORDER,
   RETURN_TO_STATION,
-  BRAKING,
   STOPPED,
   REFUELING,
-  SPIRALLING,
-  PID_TUNE
+  FOLLOW_LINE
 };
 
 
@@ -25,24 +27,28 @@ String zumo_state_to_str(ZumoState state) {
       return "CALIBRATE_LINESENSORS";
     case ZumoState::WAIT_FOR_START_SIGNAL:
       return "WAIT_FOR_START_SIGNAL";
-    case ZumoState::MOVING:
-      return "MOVING";
-    case ZumoState::BRANCH_FOUND:
-      return "BRANCH_FOUND";
-    case ZumoState::MAP_BRANCHPOINT:
-      return "MAP_BRANCHPOINT";
+    case ZumoState::SEARCHING_FOR_BOX:
+      return "SEARCHING_FOR_BOX";
+    case ZumoState::FOUND_BOX:
+      return "FOUND_BOX";
+    case ZumoState::TURNING_TO_BOX:
+      return "TURNING_TO_BOX";
+    case ZumoState::LOST_TRACK_OF_BOX:
+      return "LOST_TRACK_OF_BOX";
+    case ZumoState::MOVING_TO_BOX:
+      return "MOVING_TO_BOX";
+    case ZumoState::GRABBING_BOX:
+      return "GRABBING_BOX";
+    case ZumoState::MOVE_TO_BORDER:
+      return "MOVE_TO_BORDER";
     case ZumoState::RETURN_TO_STATION:
       return "RETURN_TO_STATION";
-    case ZumoState::BRAKING:
-      return "BRAKING";
     case ZumoState::STOPPED:
       return "STOPPED";
     case ZumoState::REFUELING:
       return "REFUELING";
-    case ZumoState::SPIRALLING:
-      return "SPIRALLING";
-    case ZumoState::PID_TUNE:
-      return "PID_TUNE";
+    case ZumoState::FOLLOW_LINE:
+      return "FOLLOW_LINE";
 
     default:
       return "unknown state";

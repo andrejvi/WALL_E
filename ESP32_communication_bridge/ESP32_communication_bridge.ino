@@ -3,7 +3,7 @@
 #include <TFT_eSPI.h>
 #include <SPI.h>
 #include "ZumoState.h"
-#include "Package.h"    // Disse må kopieres manuelt over i denne mappa..
+#include "Packet.h"    // Disse må kopieres manuelt over i denne mappa..
 
 
 
