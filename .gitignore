@@ -1,0 +1,7 @@
+# Arduino lar oss ikke linje til headerfiler som ligger i mapper
+# oppover i mappestrukturen, derfor må disse filene kopieres
+# manuelt. Men vi ønsker ikke å laste de opp til GitHub så de
+# ligger dobbelt.
+
+ESP32_communication_bridge/Packet.h
+ESP32_communication_bridge/ZumoState.h
