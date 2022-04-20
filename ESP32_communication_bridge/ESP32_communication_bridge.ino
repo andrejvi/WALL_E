@@ -32,6 +32,9 @@
 
 */
 
+// Pins for seriekommunikasjon ZUMO<--->ESP
+#define TX_ZUMO_ESP 17
+#define RX_ZUMO_ESP 2
 
 #ifdef IS_ZUMO
 uint8_t PEER_MAC_ADDR[] = {0x84, 0xCC, 0xA8, 0x61, 0x51, 0x28}; // (ESP med rett resetknapp)
@@ -77,13 +80,8 @@ void esp_now_on_data_receive(const uint8_t *mac, const uint8_t *incoming_data, i
   memcpy(&radio_received_package, incoming_data, sizeof(radio_received_package));
   require_screen_update = true;
 
-  // FIXME: her vil zumoen endre tilstand og bekrefte med ny serialpakke. Siden ZUMOen
-  // er på påskeferie er det kun en enkel loopback her nå.
-#ifdef IS_ZUMO
-  serial_received_package.zumo_state = radio_received_package.zumo_state;
-  esp_err_t last_send_result = esp_now_send(PEER_MAC_ADDR, (uint8_t *) &serial_received_package, sizeof(serial_received_package));
-#endif
-
+  // TODO: skriv over hele pakka her, ikke bare en uint8_t
+  Serial.write(radio_received_package.zumo_state);
 }
 
 
@@ -164,7 +162,12 @@ bool receive_new_serial_package() {
 
 
 void setup() {
+  #ifdef IS_ZUMO
+  Serial.begin(115200, SERIAL_8N1, RX_ZUMO_ESP, TX_ZUMO_ESP);
+  #else 
   Serial.begin(115200);
+  #endif
+  
   tft.init();
   tft.setRotation(1);
 
