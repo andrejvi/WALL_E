@@ -222,11 +222,7 @@ void loop(){
       //      - her kan vi også sjekke opp mot data fra nettet om det lønner seg å vente
       
       //funksjon som kjører rundt innenfor en border
-      //searching(line_sensor_values[NUM_SENSORS]);
-      display.gotoXY(0,1);
-      display.print(line_sensor_values[3]);
-      
-
+      searching(line_sensor_values[NUM_SENSORS]);
       
       // Printer SpeedMeter til LCD:
       
@@ -357,7 +353,7 @@ void loop(){
   if (state_has_changed) { time_in_state = millis(); }
   
 
-  motors.setSpeeds(left_speed, right_speed);
+  //motors.setSpeeds(left_speed, right_speed);
   if ((millis() - time_since_lcd_update) > LCD_UPDATE_DELAY_MS) {
     display.display();
     time_since_lcd_update = millis();

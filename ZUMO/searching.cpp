@@ -7,9 +7,9 @@
 #define QTR_THRESHOLD     900  // microseconds
 
 // These might need to be tuned for different motor types.
-#define REVERSE_SPEED     150  // 0 is stopped, 400 is full speed
-#define TURN_SPEED        150
-#define FORWARD_SPEED     150
+#define REVERSE_SPEED     200  // 0 is stopped, 400 is full speed
+#define TURN_SPEED        200
+#define FORWARD_SPEED     200
 #define REVERSE_DURATION  400  // ms
 #define TURN_DURATION     600  // ms
 
