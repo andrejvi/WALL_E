@@ -2,9 +2,8 @@
 #include <Zumo32U4.h>
 
 #define echoPin 17 // attach pin D2 Arduino to pin Echo of HC-SR04
-#define trigPin 13 //attach pin D3 Arduino to pin Trig of HC-SR04
+#define trigPin 14 //attach pin D3 Arduino to pin Trig of HC-SR04
 
-// defines variables
 long duration; // variable for the duration of sound wave travel
 int distance; // variable for the distance measurement
 unsigned long period_1 = 2;

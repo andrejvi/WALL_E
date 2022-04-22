@@ -11,6 +11,7 @@
 #include "searching.h" //søkefunksjon
 #include "ZumoState.h"
 #include "Packet.h"
+#include "ultrasonic.h"
 
 #define State ZumoState
 
@@ -89,6 +90,7 @@ void setup() {
   line_sensors.initThreeSensors();
   //proxSensors.initThreeSensors();
   update_counter = 0;
+  Serial.begin(9600);
 }
 
 
@@ -155,6 +157,8 @@ void loop() {
 
     case State::WAIT_FOR_START_SIGNAL: {
         // Wall-E venter på signal om å starte
+
+        Serial.println(ultrasonic());
 
         // Vent på at noen trykker på knapp A
         if (button_a.getSingleDebouncedPress()) {
