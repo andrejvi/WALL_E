@@ -15,7 +15,12 @@
 
 #define State ZumoState
 
+// Konfigurerer pakke
+#define PACKAGE_START_BYTE 0b00111100   // "<"
+#define PACKAGE_STOP_BYTE  0b00111110   // ">"
+
 // Konstanter
+const uint8_t PACKAGE_SIZE = sizeof(Package);
 const uint8_t CONNECTIONS_PER_NODE = 8;
 const uint8_t TOTAL_NODES = 8;
 #define NUM_SENSORS 3
@@ -50,7 +55,6 @@ struct PID {
 
 
 
-
 // Instansiering av globale objekter
 Zumo32U4LineSensors line_sensors;
 Zumo32U4Motors motors;
@@ -61,11 +65,13 @@ Zumo32U4Encoders encoders;
 State state = State::RESET;
 State state_prev;
 PID pid;
+Package local_package;
 
 
 // Globale variabler
 bool linesensors_calibrated_since_last_powerup = false;
 bool state_has_changed;
+bool require_package_transmission;
 uint16_t update_counter;
 unsigned long time_in_state;
 unsigned long time_0;
@@ -78,11 +84,44 @@ int32_t lastDisplayTime;
 float countsLeft;
 float countsRight;
 float counts_no_reset;
-
-// PID-regulator-variabler.
-// TODO: lag en struct/class for innstilling av PID-regulator så det ikke er så mye rot her
+byte serial_buffer[sizeof(local_package)];
 
 
+
+bool receive_serial_package(byte serial_buffer[PACKAGE_SIZE]) {
+  // Returnerer enten "false" om vi ikke har fått inn pakke, eller
+  // "true" dersom en ny pakke er skrevet over på "serial_buffer".
+
+  static bool receive_in_progress = false;
+  static byte index = 0;
+  byte received_byte;
+
+  while (Serial1.available() > 0) {
+    received_byte = Serial1.read();
+
+    if (received_byte == PACKAGE_START_BYTE) {
+      receive_in_progress = true;
+    }
+
+    if (receive_in_progress) {
+      if (received_byte != PACKAGE_STOP_BYTE) {
+        serial_buffer[index] = received_byte;
+      }
+
+      if (received_byte == PACKAGE_STOP_BYTE) {
+        receive_in_progress = false;
+        index = 0;
+
+        // Vi har mottatt pakke, kopierer nå over i "local_package"
+        memcpy(&local_package, serial_buffer, PACKAGE_SIZE);
+        return true;
+      }
+
+      index ++;
+    }
+  }
+  return false;
+}
 
 
 void setup() {
@@ -101,11 +140,21 @@ void loop() {
   //                                                                           //
   ///////////////////////////////////////////////////////////////////////////////
   state_prev = state;
+  require_package_transmission = false;
 
-  if (Serial1.available() > 0) {
-    // TODO: få denne til å ta imot pakka og ikke bare en "State" (uint8_t)
-    state = Serial1.read();
+
+  if (receive_serial_package(serial_buffer)) {
+    // Vi har mottatt ny "local_package"
+
+    require_package_transmission = true;
+
+    // Leser over de variablene fra pakka vi ønsker å bruke i zumoen
+    state = local_package.zumo_state;
+    pid.Kp = local_package.Kp;
+    pid.Ki = local_package.Ki;
+    pid.Kd = local_package.Kd;
   }
+
 
   line_position = line_sensors.readLine(line_sensor_values);
 
@@ -148,7 +197,7 @@ void loop() {
         line_sensors.calibrate();
 
         if ((millis() - time_0) > CALIBRATION_TIME_MS) {
-          left_speed, right_speed = 0;
+          linesensors_calibrated_since_last_powerup = true;
           state = State::WAIT_FOR_START_SIGNAL;
         }
 
@@ -208,7 +257,7 @@ void loop() {
         //       peker rett mot boksen, gå til MOVING_TO_BOX
         //       Om vi bruker for lang tid uten å se noen boks, gå til LOST_TRACK_OF_BOX.
       } break;
-    
+
     case State::LOST_TRACK_OF_BOX: {
         // Wall-E kan ikke lenger se boksen
 
@@ -264,7 +313,7 @@ void loop() {
         left_speed = constrain((max_speed + speed_difference), -max_speed / 3, max_speed);
         right_speed = constrain((max_speed - speed_difference), -max_speed / 3, max_speed);
         motors.setSpeeds(left_speed, right_speed);
-    } break;
+      } break;
   }
 
   ///////////////////////////////////////////////////////////////////////////////
@@ -274,19 +323,26 @@ void loop() {
   ///////////////////////////////////////////////////////////////////////////////
   state_has_changed = (state_prev != state);
 
-  
+
   if (state_has_changed) {
     time_in_state = millis();
-    Serial1.write(state);
+    require_package_transmission = true;
 
-    motors.setSpeeds(0,0);
+    motors.setSpeeds(0, 0);
   }
 
+  if (require_package_transmission) {
+    local_package.stop_byte = PACKAGE_STOP_BYTE;
+    local_package.zumo_state = state;
+    local_package.Kp = pid.Kp;
+    local_package.Ki = pid.Ki;
+    local_package.Kd = pid.Kd;
+    local_package.start_byte = PACKAGE_START_BYTE;
+    
+    Serial1.write((byte*)&local_package, PACKAGE_SIZE);
+    require_package_transmission = false;
+  }
 
-  //motors.setSpeeds(left_speed, right_speed);
-
-
-  // TODO: basert på ny informasjon kan vi oppdatere "node_array" her
 
   // Plusser på "1" til "update_counter", med mindre den er MAX_INT, da går den til 0
   update_counter = (update_counter == 65535) ? 0 : update_counter + 1;
