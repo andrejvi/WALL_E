@@ -8,7 +8,7 @@
 
 
 // VIKTIG! Denne linja er alt du trenger å endre for å flashe de to forskjellige ESP'ene.
-//#define IS_ZUMO     // Kommenter ut for å flashe RPi-ESP, behold den for å flashe ZUMO-ESP.
+#define IS_ZUMO     // Kommenter ut for å flashe RPi-ESP, behold den for å flashe ZUMO-ESP.
 
 
 /*
@@ -133,9 +133,12 @@ void update_display() {
   tft.print("requested: ");
   tft.println(zumo_state_to_str(radio_received_package.zumo_state));
 
-  tft.print("PID: Kp: ");  tft.print(radio_received_package.Kp);
-  tft.print(",  Ki: ");    tft.print(radio_received_package.Ki);
-  tft.print(",  Kd: ");    tft.println(radio_received_package.Ki);
+  tft.print("PID: Kp: ");  tft.print(serial_received_package.Kp);
+  tft.print(",  Ki: ");    tft.print(serial_received_package.Ki);
+  tft.print(",  Kd: ");    tft.println(serial_received_package.Ki);
+
+  tft.print("Battery: ");  tft.print(serial_received_package.battery_level);
+  tft.print(",   Speed: "); tft.println(serial_received_package.speed);
 #else
 
   tft.print("zumo state: ");
@@ -143,9 +146,12 @@ void update_display() {
   tft.print("requested: ");
   tft.println(zumo_state_to_str(serial_received_package.zumo_state));
 
-  tft.print("PID: Kp: ");  tft.print(serial_received_package.Kp);
-  tft.print(",  Ki: ");    tft.print(serial_received_package.Ki);
-  tft.print(",  Kd: ");    tft.println(serial_received_package.Ki);
+  tft.print("PID: Kp: ");  tft.print(radio_received_package.Kp);
+  tft.print(",  Ki: ");    tft.print(radio_received_package.Ki);
+  tft.print(",  Kd: ");    tft.println(radio_received_package.Ki);
+
+  tft.print("Battery: ");  tft.print(radio_received_package.battery_level);
+  tft.print(",   Speed: "); tft.println(radio_received_package.speed);
 #endif
 
   tft.print("PKG: ");

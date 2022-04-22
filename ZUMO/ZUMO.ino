@@ -21,14 +21,13 @@
 
 // Konstanter
 const uint8_t PACKAGE_SIZE = sizeof(Package);
-const uint8_t CONNECTIONS_PER_NODE = 8;
-const uint8_t TOTAL_NODES = 8;
 #define NUM_SENSORS 3
 const int8_t LCD_UPDATE_DELAY_MS = 10;
 const unsigned long CALIBRATION_TIME_MS = 4000;
 const int8_t PID_DEFAULT_P = 3;
 const int8_t PID_DEFAULT_I = 0;
 const int8_t PID_DEFAULT_D = 6;
+const uint16_t CYCLES_BETWEEN_AUTOMATIC_PACKAGE_TRANSMISSIONS = 100;
 const int16_t MAX_SPEED = 270;
 const int16_t LOW_BATTERY = 200;
 
@@ -65,6 +64,7 @@ Zumo32U4Encoders encoders;
 State state = State::RESET;
 State state_prev;
 PID pid;
+Package received_package;
 Package local_package;
 
 
@@ -72,7 +72,7 @@ Package local_package;
 bool linesensors_calibrated_since_last_powerup = false;
 bool state_has_changed;
 bool require_package_transmission;
-uint16_t update_counter;
+uint16_t cycle_counter = 0;
 unsigned long time_in_state;
 unsigned long time_0;
 int16_t line_sensor_values[NUM_SENSORS];
@@ -84,17 +84,17 @@ int32_t lastDisplayTime;
 float countsLeft;
 float countsRight;
 float counts_no_reset;
-byte serial_buffer[sizeof(local_package)];
+uint8_t serial_buffer[sizeof(local_package)];
 
 
 
-bool receive_serial_package(byte serial_buffer[PACKAGE_SIZE]) {
+bool receive_serial_package(uint8_t serial_buffer[PACKAGE_SIZE]) {
   // Returnerer enten "false" om vi ikke har fått inn pakke, eller
-  // "true" dersom en ny pakke er skrevet over på "serial_buffer".
+  // "true" dersom en ny pakke er skrevet over på "received_package".
 
   static bool receive_in_progress = false;
   static byte index = 0;
-  byte received_byte;
+  uint8_t received_byte;
 
   while (Serial1.available() > 0) {
     received_byte = Serial1.read();
@@ -113,7 +113,7 @@ bool receive_serial_package(byte serial_buffer[PACKAGE_SIZE]) {
         index = 0;
 
         // Vi har mottatt pakke, kopierer nå over i "local_package"
-        memcpy(&local_package, serial_buffer, PACKAGE_SIZE);
+        memcpy(&received_package, serial_buffer, PACKAGE_SIZE);
         return true;
       }
 
@@ -128,7 +128,6 @@ void setup() {
   Serial1.begin(115200);
   line_sensors.initThreeSensors();
   //proxSensors.initThreeSensors();
-  update_counter = 0;
   Serial.begin(9600);
 }
 
@@ -144,15 +143,17 @@ void loop() {
 
 
   if (receive_serial_package(serial_buffer)) {
-    // Vi har mottatt ny "local_package"
+    // Vi har mottatt ny "received_package".
 
-    require_package_transmission = true;
 
     // Leser over de variablene fra pakka vi ønsker å bruke i zumoen
     state = local_package.zumo_state;
     pid.Kp = local_package.Kp;
     pid.Ki = local_package.Ki;
     pid.Kd = local_package.Kd;
+
+    // Vi ønsker å sende et svar for å bekrefte til den andre ESPen
+    require_package_transmission = true;
   }
 
 
@@ -213,12 +214,6 @@ void loop() {
         if (button_a.getSingleDebouncedPress()) {
           state = State::SEARCHING_FOR_BOX;
         }
-
-
-        left_speed = 0;
-        right_speed = 0;
-
-        // TODO: aksepter startsignal fra ESP32
       } break;
 
     case State::SEARCHING_FOR_BOX: {
@@ -331,19 +326,25 @@ void loop() {
     motors.setSpeeds(0, 0);
   }
 
+  if (cycle_counter % CYCLES_BETWEEN_AUTOMATIC_PACKAGE_TRANSMISSIONS == 0) {
+    require_package_transmission = true;
+  }
+
   if (require_package_transmission) {
     local_package.stop_byte = PACKAGE_STOP_BYTE;
     local_package.zumo_state = state;
     local_package.Kp = pid.Kp;
     local_package.Ki = pid.Ki;
     local_package.Kd = pid.Kd;
+    local_package.battery_level = (uint16_t)42;     // TODO: legg inn ordentlige verdier her
+    local_package.speed = (uint16_t)1337;
     local_package.start_byte = PACKAGE_START_BYTE;
     
-    Serial1.write((byte*)&local_package, PACKAGE_SIZE);
+    Serial1.write((uint8_t*)&local_package, PACKAGE_SIZE);
     require_package_transmission = false;
   }
 
 
   // Plusser på "1" til "update_counter", med mindre den er MAX_INT, da går den til 0
-  update_counter = (update_counter == 65535) ? 0 : update_counter + 1;
+  cycle_counter = (cycle_counter == 65535) ? 0 : cycle_counter + 1;
 }
