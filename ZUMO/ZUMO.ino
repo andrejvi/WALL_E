@@ -27,7 +27,7 @@ const unsigned long CALIBRATION_TIME_MS = 4000;
 const int8_t PID_DEFAULT_P = 3;
 const int8_t PID_DEFAULT_I = 0;
 const int8_t PID_DEFAULT_D = 6;
-const uint16_t CYCLES_BETWEEN_AUTOMATIC_PACKAGE_TRANSMISSIONS = 100;
+const uint16_t MS_BETWEEN_AUTOMATIC_PACKAGE_TRANSMISSIONS = 1000;
 const int16_t MAX_SPEED = 270;
 const int16_t LOW_BATTERY = 200;
 
@@ -326,7 +326,7 @@ void loop() {
     motors.setSpeeds(0, 0);
   }
 
-  if (cycle_counter % CYCLES_BETWEEN_AUTOMATIC_PACKAGE_TRANSMISSIONS == 0) {
+  if (time_in_state % MS_BETWEEN_AUTOMATIC_PACKAGE_TRANSMISSIONS == 0) {
     require_package_transmission = true;
   }
 
