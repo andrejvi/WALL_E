@@ -135,10 +135,11 @@ void update_display() {
 
   tft.print("PID: Kp: ");  tft.print(serial_received_package.Kp);
   tft.print(",  Ki: ");    tft.print(serial_received_package.Ki);
-  tft.print(",  Kd: ");    tft.println(serial_received_package.Ki);
+  tft.print(",  Kd: ");    tft.println(serial_received_package.Kd);
 
-  tft.print("Battery: ");  tft.print(serial_received_package.battery_level);
-  tft.print(",   Speed: "); tft.println(serial_received_package.speed);
+  //tft.print("Batt.: ");  tft.print(serial_received_package.battery_level);
+  //tft.print(", Speed: "); tft.println(serial_received_package.speed);
+  tft.print(", Dist.: "); tft.println(serial_received_package.ultrasonic_distance_reading);
 #else
 
   tft.print("zumo state: ");
@@ -148,10 +149,11 @@ void update_display() {
 
   tft.print("PID: Kp: ");  tft.print(radio_received_package.Kp);
   tft.print(",  Ki: ");    tft.print(radio_received_package.Ki);
-  tft.print(",  Kd: ");    tft.println(radio_received_package.Ki);
+  tft.print(",  Kd: ");    tft.println(radio_received_package.Kd);
 
-  tft.print("Battery: ");  tft.print(radio_received_package.battery_level);
-  tft.print(",   Speed: "); tft.println(radio_received_package.speed);
+  //tft.print("Batt.: ");  tft.print(radio_received_package.battery_level);
+  //tft.print(", Speed: "); tft.print(radio_received_package.speed);
+  tft.print(", Dist.: "); tft.println(radio_received_package.ultrasonic_distance_reading);
 #endif
 
   tft.print("PKG: ");

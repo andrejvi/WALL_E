@@ -75,6 +75,7 @@ bool require_package_transmission;
 uint16_t cycle_counter = 0;
 unsigned long time_in_state;
 unsigned long time_0;
+unsigned long time_since_transmission;
 int16_t line_sensor_values[NUM_SENSORS];
 int16_t line_position;
 int32_t max_speed = MAX_SPEED;
@@ -117,6 +118,10 @@ bool receive_serial_package(uint8_t serial_buffer[PACKAGE_SIZE]) {
         return true;
       }
 
+      if (index > PACKAGE_SIZE) {
+        return false;
+      }
+
       index ++;
     }
   }
@@ -147,10 +152,10 @@ void loop() {
 
 
     // Leser over de variablene fra pakka vi ønsker å bruke i zumoen
-    state = local_package.zumo_state;
-    pid.Kp = local_package.Kp;
-    pid.Ki = local_package.Ki;
-    pid.Kd = local_package.Kd;
+    state = received_package.zumo_state;
+    pid.Kp = received_package.Kp;
+    pid.Ki = received_package.Ki;
+    pid.Kd = received_package.Kd;
 
     // Vi ønsker å sende et svar for å bekrefte til den andre ESPen
     require_package_transmission = true;
@@ -326,7 +331,7 @@ void loop() {
     motors.setSpeeds(0, 0);
   }
 
-  if (time_in_state % MS_BETWEEN_AUTOMATIC_PACKAGE_TRANSMISSIONS == 0) {
+  if ((millis() - time_since_transmission) > MS_BETWEEN_AUTOMATIC_PACKAGE_TRANSMISSIONS) {
     require_package_transmission = true;
   }
 
@@ -336,15 +341,18 @@ void loop() {
     local_package.Kp = pid.Kp;
     local_package.Ki = pid.Ki;
     local_package.Kd = pid.Kd;
-    local_package.battery_level = (uint16_t)42;     // TODO: legg inn ordentlige verdier her
-    local_package.speed = (uint16_t)1337;
+    local_package.battery_level = 42;     // TODO: legg inn ordentlige verdier her
+    local_package.speed = 1337;
     local_package.start_byte = PACKAGE_START_BYTE;
-    
+
     Serial1.write((uint8_t*)&local_package, PACKAGE_SIZE);
+    Serial.write((uint8_t*)&local_package, PACKAGE_SIZE);
+    
     require_package_transmission = false;
+    time_since_transmission = millis();
   }
 
 
-  // Plusser på "1" til "update_counter", med mindre den er MAX_INT, da går den til 0
+  // Plusser på "1" til "cycle_counter", med mindre den er MAX_INT, da går den til 0
   cycle_counter = (cycle_counter == 65535) ? 0 : cycle_counter + 1;
 }
