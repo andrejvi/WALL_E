@@ -23,6 +23,7 @@ typedef struct Package {
   uint8_t Kd;
   uint16_t battery_level;
   uint16_t speed;
+  float ultrasonic_distance_reading;
 
   // Byte som indikerer at melding stopper. Denne setter vi til ">" i Zumo.ino
   uint8_t stop_byte;

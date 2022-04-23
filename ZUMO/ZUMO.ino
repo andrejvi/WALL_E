@@ -4,6 +4,7 @@
 
 //Biblioteker:
 #include <Wire.h> //Init
+#include <Servo.h>
 #include "EEPROM.h" //EEPROM: et minne der variabler er lagret selv når Zumo er skrudd av.
 #include <Zumo32U4.h> //Zumo bibliotek
 #include "BatteryLevel.h" //Batterifunksjoner
@@ -20,10 +21,14 @@
 #define PACKAGE_STOP_BYTE  0b00111110   // ">"
 
 // Konstanter
+const uint8_t TRIG_PIN = 13;
+const uint8_t ECHO_PIN = 17;
+const uint8_t SERVO_PIN = 14;
 const uint8_t PACKAGE_SIZE = sizeof(Package);
 #define NUM_SENSORS 3
 const int8_t LCD_UPDATE_DELAY_MS = 10;
 const unsigned long CALIBRATION_TIME_MS = 4000;
+const unsigned long DISTANCE_SENSOR_TIMEOUT_US = 3000; // Gir oss ca 39 cm range
 const int8_t PID_DEFAULT_P = 3;
 const int8_t PID_DEFAULT_I = 0;
 const int8_t PID_DEFAULT_D = 6;
@@ -57,10 +62,8 @@ struct PID {
 // Instansiering av globale objekter
 Zumo32U4LineSensors line_sensors;
 Zumo32U4Motors motors;
-Zumo32U4ButtonA button_a;
-Zumo32U4ButtonB button_b;
-Zumo32U4ButtonC button_c;
 Zumo32U4Encoders encoders;
+Servo servo;
 State state = State::RESET;
 State state_prev;
 PID pid;
@@ -78,6 +81,7 @@ unsigned long time_0;
 unsigned long time_since_transmission;
 int16_t line_sensor_values[NUM_SENSORS];
 int16_t line_position;
+float ultrasonic_distance_reading;
 int32_t max_speed = MAX_SPEED;
 int32_t left_speed = 0;
 int32_t right_speed = 0;
@@ -87,6 +91,18 @@ float countsRight;
 float counts_no_reset;
 uint8_t serial_buffer[sizeof(local_package)];
 
+
+float distance_reading() {
+  // Midlertidig, måtte bare ha en som funka for å se om zumoen kunne drive HCSR04
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+
+  float duration = pulseIn(ECHO_PIN, HIGH, DISTANCE_SENSOR_TIMEOUT_US);
+  return (duration * .0343) / 2;
+}
 
 
 bool receive_serial_package(uint8_t serial_buffer[PACKAGE_SIZE]) {
@@ -131,9 +147,14 @@ bool receive_serial_package(uint8_t serial_buffer[PACKAGE_SIZE]) {
 
 void setup() {
   Serial1.begin(115200);
+  pinMode(SERVO_PIN, OUTPUT);
+  servo.attach(SERVO_PIN);
   line_sensors.initThreeSensors();
   //proxSensors.initThreeSensors();
   Serial.begin(9600);
+
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
 }
 
 
@@ -163,6 +184,9 @@ void loop() {
 
 
   line_position = line_sensors.readLine(line_sensor_values);
+  //ultrasonic_distance_reading = ultrasonic();
+  ultrasonic_distance_reading = distance_reading();
+  Serial.println(ultrasonic_distance_reading);
 
 
   if ((uint8_t)(millis() - lastDisplayTime) >= 100)
@@ -213,12 +237,7 @@ void loop() {
     case State::WAIT_FOR_START_SIGNAL: {
         // Wall-E venter på signal om å starte
 
-        Serial.println(ultrasonic());
 
-        // Vent på at noen trykker på knapp A
-        if (button_a.getSingleDebouncedPress()) {
-          state = State::SEARCHING_FOR_BOX;
-        }
       } break;
 
     case State::SEARCHING_FOR_BOX: {
@@ -343,6 +362,7 @@ void loop() {
     local_package.Kd = pid.Kd;
     local_package.battery_level = 42;     // TODO: legg inn ordentlige verdier her
     local_package.speed = 1337;
+    local_package.ultrasonic_distance_reading = ultrasonic_distance_reading;
     local_package.start_byte = PACKAGE_START_BYTE;
 
     Serial1.write((uint8_t*)&local_package, PACKAGE_SIZE);
