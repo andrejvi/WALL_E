@@ -15,6 +15,7 @@
 typedef struct Package {
   // Byte som indikerer at melding starter. Denne setter vi til "<" i Zumo.ino
   uint8_t start_byte;
+  
 
   // Innholdet i pakka
   ZumoState zumo_state;
@@ -24,6 +25,13 @@ typedef struct Package {
   uint16_t battery_level;
   uint16_t speed;
   float ultrasonic_distance_reading;
+
+  // Flagg. "1" indikerer ny data for verdi,
+  //        "0" indikerer at data for denne verdien skal ignoreres
+  bool update_zumo_state;
+  bool update_Kp;
+  bool update_Ki;
+  bool update_Kd;
 
   // Byte som indikerer at melding stopper. Denne setter vi til ">" i Zumo.ino
   uint8_t stop_byte;

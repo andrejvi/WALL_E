@@ -129,7 +129,7 @@ bool receive_serial_package(uint8_t serial_buffer[PACKAGE_SIZE]) {
         receive_in_progress = false;
         index = 0;
 
-        // Vi har mottatt pakke, kopierer nå over i "local_package"
+        // Vi har mottatt pakke, kopierer nå over i "received_package"
         memcpy(&received_package, serial_buffer, PACKAGE_SIZE);
         return true;
       }
@@ -173,10 +173,11 @@ void loop() {
 
 
     // Leser over de variablene fra pakka vi ønsker å bruke i zumoen
-    state = received_package.zumo_state;
-    pid.Kp = received_package.Kp;
-    pid.Ki = received_package.Ki;
-    pid.Kd = received_package.Kd;
+    if(received_package.update_zumo_state) state = received_package.zumo_state;
+    if(received_package.update_Kp) pid.Kp = received_package.Kp;
+    if(received_package.update_Ki) pid.Ki = received_package.Ki;
+    if(received_package.update_Kd) pid.Kd = received_package.Kd;
+    if(received_package.update_Kd) pid.Kd = received_package.Kd;
 
     // Vi ønsker å sende et svar for å bekrefte til den andre ESPen
     require_package_transmission = true;
