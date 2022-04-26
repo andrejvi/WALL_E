@@ -63,7 +63,7 @@ struct PID {
 Zumo32U4LineSensors line_sensors;
 Zumo32U4Motors motors;
 Zumo32U4Encoders encoders;
-Servo servo;
+//Servo servo;
 State state = State::RESET;
 State state_prev;
 PID pid;
@@ -149,7 +149,7 @@ bool receive_serial_package(uint8_t serial_buffer[PACKAGE_SIZE]) {
 void setup() {
   Serial1.begin(115200);
   pinMode(SERVO_PIN, OUTPUT);
-  servo.attach(SERVO_PIN);
+  //servo.attach(SERVO_PIN);
   line_sensors.initThreeSensors();
   //proxSensors.initThreeSensors();
   Serial.begin(9600);
@@ -174,11 +174,11 @@ void loop() {
 
 
     // Leser over de variablene fra pakka vi ønsker å bruke i zumoen
-    if(received_package.update_zumo_state) state = received_package.zumo_state;
-    if(received_package.update_Kp) pid.Kp = received_package.Kp;
-    if(received_package.update_Ki) pid.Ki = received_package.Ki;
-    if(received_package.update_Kd) pid.Kd = received_package.Kd;
-    if(received_package.update_Kd) pid.Kd = received_package.Kd;
+    if (received_package.update_zumo_state) state = received_package.zumo_state;
+    if (received_package.update_Kp) pid.Kp = received_package.Kp;
+    if (received_package.update_Ki) pid.Ki = received_package.Ki;
+    if (received_package.update_Kd) pid.Kd = received_package.Kd;
+    if (received_package.update_Kd) pid.Kd = received_package.Kd;
 
     // Vi ønsker å sende et svar for å bekrefte til den andre ESPen
     require_package_transmission = true;
@@ -246,10 +246,10 @@ void loop() {
         // Wall-E kjører rundt inne i byen og ser etter bokser.
 
         //funksjon som kjører rundt innenfor en border
-        if (kantteller >= 5){
+        if (kantteller >= 5) {
           //søk med servo
           state = State::SCANNING_FOR_BOX;
-          }
+        }
         searching(line_sensor_values[NUM_SENSORS]);
 
         float avg_speed = speedmeter(countsLeft, countsRight);
@@ -266,8 +266,15 @@ void loop() {
 
       } break;
 
-     case State::SCANNING_FOR_BOX: {
+    case State::SCANNING_FOR_BOX: {
         // Wall-E scanner med servo
+        if (true) {
+          //detach motor og atach servo
+
+          //Servo.detach()
+          //Servo servo;
+          //servo.attach(SERVO_PIN);
+        }
 
 
       } break;
@@ -379,7 +386,7 @@ void loop() {
 
     Serial1.write((uint8_t*)&local_package, PACKAGE_SIZE);
     Serial.write((uint8_t*)&local_package, PACKAGE_SIZE);
-    
+
     require_package_transmission = false;
     time_since_transmission = millis();
   }

@@ -10,7 +10,7 @@ import os
 if os.name == "posix":
     PORT = "/dev/ttyUSB0"
 else:
-    PORT = "COM"
+    PORT = "COM21"
 
 BAUD = 115200
 
