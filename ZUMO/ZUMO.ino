@@ -90,6 +90,7 @@ float countsLeft;
 float countsRight;
 float counts_no_reset;
 uint8_t serial_buffer[sizeof(local_package)];
+int kantteller;
 
 
 float distance_reading() {

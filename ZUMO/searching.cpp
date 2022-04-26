@@ -14,7 +14,7 @@
 #define TURN_DURATION     600  // ms
 
 //Counter for hvor mange ganger Walle treffer kanten
-int kantteller = 0;
+
 
 
 
