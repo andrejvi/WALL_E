@@ -135,6 +135,15 @@ bool receive_serial_package(uint8_t serial_buffer[PACKAGE_SIZE]) {
         return true;
       }
 
+      if (index == PACKAGE_SIZE) {
+                receive_in_progress = false;
+        index = 0;
+
+        // Vi har mottatt pakke, kopierer nå over i "received_package"
+        memcpy(&received_package, serial_buffer, PACKAGE_SIZE);
+        return true;
+      }
+
       if (index > PACKAGE_SIZE) {
         return false;
       }
