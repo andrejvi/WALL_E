@@ -245,6 +245,10 @@ void loop() {
         // Wall-E kjører rundt inne i byen og ser etter bokser.
 
         //funksjon som kjører rundt innenfor en border
+        if (kantteller >= 5){
+          //søk med servo
+          state = State::SCANNING_FOR_BOX;
+          }
         searching(line_sensor_values[NUM_SENSORS]);
 
         float avg_speed = speedmeter(countsLeft, countsRight);
@@ -257,6 +261,12 @@ void loop() {
           //dødt batteri
           state = State::STOPPED;
         }
+
+
+      } break;
+
+     case State::SCANNING_FOR_BOX: {
+        // Wall-E scanner med servo
 
 
       } break;
