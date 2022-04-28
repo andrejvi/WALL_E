@@ -150,7 +150,7 @@ void setup() {
   Serial1.begin(115200);
   pinMode(SERVO_PIN, OUTPUT);
   //servo.attach(SERVO_PIN);
-  line_sensors.initThreeSensors();
+  line_sensors.initFiveSensors();
   //proxSensors.initThreeSensors();
   Serial.begin(9600);
 
