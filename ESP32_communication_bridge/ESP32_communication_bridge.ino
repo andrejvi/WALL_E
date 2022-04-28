@@ -8,7 +8,7 @@
 
 
 // VIKTIG! Denne linja er alt du trenger å endre for å flashe de to forskjellige ESP'ene.
-#define IS_ZUMO     // Kommenter ut for å flashe RPi-ESP, behold den for å flashe ZUMO-ESP.
+//#define IS_ZUMO     // Kommenter ut for å flashe RPi-ESP, behold den for å flashe ZUMO-ESP.
 
 
 /*
@@ -157,7 +157,7 @@ void update_display() {
 #endif
 
   tft.print("PKG: ");
-  for (int i = 0; i < PACKAGE_SIZE - 1; i++) {
+  for (int i = 0; i < PACKAGE_SIZE; i++) {
     tft.print(serial_buffer[i], HEX);
     tft.print(" ");
   }

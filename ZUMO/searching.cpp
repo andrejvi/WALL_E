@@ -13,6 +13,9 @@
 #define REVERSE_DURATION  400  // ms
 #define TURN_DURATION     600  // ms
 
+//Counter for hvor mange ganger Walle treffer kanten
+
+
 
 
 void searching(int16_t line_sensor_values[NUM_SENSORS]) {
@@ -30,6 +33,8 @@ void searching(int16_t line_sensor_values[NUM_SENSORS]) {
     motors.setSpeeds(TURN_SPEED, -TURN_SPEED);
     delay(TURN_DURATION);
     motors.setSpeeds(FORWARD_SPEED, FORWARD_SPEED);
+
+    kantteller += 1;
   }
   else if (line_sensor_values[NUM_SENSORS - 1] > QTR_THRESHOLD)
   {
@@ -40,6 +45,8 @@ void searching(int16_t line_sensor_values[NUM_SENSORS]) {
     motors.setSpeeds(-TURN_SPEED, TURN_SPEED);
     delay(TURN_DURATION);
     motors.setSpeeds(FORWARD_SPEED, FORWARD_SPEED);
+
+    kantteller += 1;
   }
   else
   {

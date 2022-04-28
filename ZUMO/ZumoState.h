@@ -6,6 +6,7 @@ enum ZumoState : uint8_t {
   CALIBRATE_LINESENSORS,
   WAIT_FOR_START_SIGNAL,
   SEARCHING_FOR_BOX,
+  SCANNING_FOR_BOX,
   FOUND_BOX,
   TURNING_TO_BOX,
   LOST_TRACK_OF_BOX,
@@ -29,6 +30,8 @@ String zumo_state_to_str(ZumoState state) {
       return "WAIT_FOR_START_SIGNAL";
     case ZumoState::SEARCHING_FOR_BOX:
       return "SEARCHING_FOR_BOX";
+    case ZumoState::SCANNING_FOR_BOX:
+      return "SCANNING_FOR_BOX";
     case ZumoState::FOUND_BOX:
       return "FOUND_BOX";
     case ZumoState::TURNING_TO_BOX:

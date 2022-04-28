@@ -4,7 +4,7 @@
 #include "ultrasonic.h"
 
 // Variabler
-
+extern const unsigned long DISTANCE_SENSOR_TIMEOUT_US;
 
 // Funksjoner
-int ultrasonic();
+float distance_reading();

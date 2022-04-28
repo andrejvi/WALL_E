@@ -10,12 +10,12 @@ import os
 if os.name == "posix":
     PORT = "/dev/ttyUSB0"
 else:
-    PORT = "COM"
+    PORT = "COM21"
 
 BAUD = 115200
 
 ser = serial.Serial(PORT, BAUD)
-pkg_datatypes = "<BBBBBBHHeBBBB"    # "B": uint8_t, "H": uint16_t, "e": 16float, "<": little endian encoded
+pkg_datatypes = "<BBBBBHHfBBBBB"    # "B": uint8_t, "H": uint16_t, "f": 32float, "<": little endian encoded
 
 
 def get_packed_data(state=0, Kp=0, Ki=0, Kd=0, battery=0, speed=0, distance=0, u_state=0, u_Kp=0, u_Ki=0, u_Kd=0):
