@@ -32,7 +32,7 @@ const unsigned long DISTANCE_SENSOR_TIMEOUT_US = 3000; // Gir oss ca 39 cm range
 const int8_t PID_DEFAULT_P = 3;
 const int8_t PID_DEFAULT_I = 0;
 const int8_t PID_DEFAULT_D = 6;
-const uint16_t MS_BETWEEN_AUTOMATIC_PACKAGE_TRANSMISSIONS = 1000;
+const uint16_t MS_BETWEEN_AUTOMATIC_PACKAGE_TRANSMISSIONS = 100;
 const int16_t MAX_SPEED = 270;
 const int16_t LOW_BATTERY = 200;
 const float LOWER_DISTANCE = 2.0;
@@ -95,19 +95,6 @@ float counts_no_reset;
 uint8_t serial_buffer[sizeof(local_package)];
 int kantteller;
 float batteryLife = 2000;
-
-
-float distance_reading() {
-  // Midlertidig, måtte bare ha en som funka for å se om zumoen kunne drive HCSR04
-  digitalWrite(TRIG_PIN, LOW);
-  delayMicroseconds(2);
-  digitalWrite(TRIG_PIN, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(TRIG_PIN, LOW);
-
-  float duration = pulseIn(ECHO_PIN, HIGH, DISTANCE_SENSOR_TIMEOUT_US);
-  return (duration * .0343) / 2;
-}
 
 
 bool receive_serial_package(uint8_t serial_buffer[PACKAGE_SIZE]) {
@@ -201,7 +188,8 @@ void loop() {
   line_position = line_sensors.readLine(line_sensor_values);
   //ultrasonic_distance_reading = ultrasonic();
   ultrasonic_distance_reading = distance_reading();
-  Serial.println(ultrasonic_distance_reading);
+  float avg_speed = abs(speedmeter(countsLeft, countsRight));
+  Serial.println(distance_reading());
 
 
   if ((uint8_t)(millis() - lastDisplayTime) >= 100)
@@ -258,7 +246,7 @@ void loop() {
 
     case State::WAIT_FOR_START_SIGNAL: {
         // Wall-E venter på signal om å starte
-
+        batteryLevel(counts_no_reset);
 
       } break;
 
@@ -268,7 +256,7 @@ void loop() {
         //funksjon som kjører rundt innenfor en border
         if (kantteller >= 5) {
           //søk med servo
-          state = State::LOST_TRACK_OF_BOX;
+          state = State::SCANNING_FOR_BOX;
         }
         searching(line_sensor_values[NUM_SENSORS]);
 
@@ -292,7 +280,11 @@ void loop() {
 
     case State::SCANNING_FOR_BOX: {
         // Wall-E scanner med servo
-
+        motors.setSpeeds(-100, 100);
+        delay(100);
+        motors.setSpeeds(-100, 100);
+        delay(100);
+        motors.setSpeeds(-100, 100);
 
 
       } break;
@@ -377,8 +369,13 @@ void loop() {
     case State::REFUELING: {
         // Wall-E er på ladestasjonen og fyller opp batteriene
         // TODO: start opp igjen når batteriene er fulle
-        batteryLife = 2000;
-      } break;
+
+       /* for(int i = 0; i>20; i+=100;){
+          batteryLife += i;
+          delay(100);
+          }
+        batteryLife = 2000;*/
+      } break; 
 
     case State::STOPPED: {
         // Wall-E står stille
@@ -421,8 +418,8 @@ void loop() {
     local_package.Kp = pid.Kp;
     local_package.Ki = pid.Ki;
     local_package.Kd = pid.Kd;
-    local_package.battery_level = 42;     // TODO: legg inn ordentlige verdier her
-    local_package.speed = 1337;
+    local_package.battery_level = batteryLife;     // TODO: legg inn ordentlige verdier her
+    local_package.speed = avg_speed;
     local_package.ultrasonic_distance_reading = ultrasonic_distance_reading;
     local_package.start_byte = PACKAGE_START_BYTE;
 
