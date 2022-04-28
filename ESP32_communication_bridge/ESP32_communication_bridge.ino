@@ -186,6 +186,7 @@ bool receive_serial_package() {
 
       if (received_byte == PACKAGE_STOP_BYTE) {
         receive_in_progress = false;
+        serial_buffer[index] = received_byte;
         index = 0;
 
         // Vi har mottatt pakke, kopierer nå over i "serial_received_package"
