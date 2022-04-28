@@ -37,6 +37,7 @@ const int16_t MAX_SPEED = 270;
 const int16_t LOW_BATTERY = 200;
 const float LOWER_DISTANCE = 2.0;
 const float MAX_DISTANCE = 20.0;
+const uint16_t QTR_THRESHOLD = 900;
 
 
 
@@ -184,7 +185,7 @@ void loop() {
   }
 
   state_prev = state;
-  
+
   line_position = line_sensors.readLine(line_sensor_values);
   //ultrasonic_distance_reading = ultrasonic();
   ultrasonic_distance_reading = distance_reading();
@@ -203,6 +204,9 @@ void loop() {
 
   //Teller antall counts siden programstart
   counts_no_reset = (encoders.getCountsLeft() + encoders.getCountsRight()) / 2;
+
+  // Vi bruker batteri
+  batteryLevel(counts_no_reset);
 
 
   ///////////////////////////////////////////////////////////////////////////////
@@ -232,8 +236,7 @@ void loop() {
         }
 
         // Kjør rundt i ring i 4 sekunder
-        left_speed = -100;
-        right_speed = 100;
+        motors.setSpeeds(-100, 100);
         line_sensors.calibrate();
 
         if ((millis() - time_0) > CALIBRATION_TIME_MS) {
@@ -241,12 +244,16 @@ void loop() {
           state = State::WAIT_FOR_START_SIGNAL;
         }
 
-        motors.setSpeeds(left_speed, right_speed);
       } break;
 
     case State::WAIT_FOR_START_SIGNAL: {
         // Wall-E venter på signal om å starte
-        batteryLevel(counts_no_reset);
+
+        // Mens vi debugger går vi til SEARCHING etter en stund
+        if (millis() - time_in_state > 2000) {
+          state = State::SEARCHING_FOR_BOX;
+        }
+
 
       } break;
 
@@ -259,7 +266,6 @@ void loop() {
           state = State::SCANNING_FOR_BOX;
         }
         searching(line_sensor_values[NUM_SENSORS]);
-        batteryLevel(counts_no_reset);
 
         float avg_speed = speedmeter(countsLeft, countsRight);
 
@@ -282,26 +288,27 @@ void loop() {
     case State::SCANNING_FOR_BOX: {
         // Wall-E scanner med servo
         motors.setSpeeds(-100, 100);
-        delay(100);
-        motors.setSpeeds(-100, 100);
-        delay(100);
-        motors.setSpeeds(-100, 100);
+
+        if (millis() - time_in_state > 5000) {
+          kantteller = 0;
+          state = State::SEARCHING_FOR_BOX;
+        }
 
 
+        if ((LOWER_DISTANCE < ultrasonic_distance_reading) && (ultrasonic_distance_reading < 38)) {
+          time_0 = millis();
+          state = State::FOUND_BOX;
+        }
       } break;
 
     case State::FOUND_BOX: {
         // Wall-E fant en boks
-        //buzzer.playFrequency(440, 100, 100);
+        buzzer.playFrequency(440, 50, 50);
 
         if (millis() - time_0 > 1000) {
           state = State::MOVING_TO_BOX;
           time_0 = millis();
         }
-
-        // TODO: spill av en glad lyd på buzzeren
-
-        // TODO: lagre hvilken sektor vi så boksen i, og snu dit i TURNING_TO_BOX
       } break;
 
     case State::TURNING_TO_BOX: {
@@ -316,53 +323,50 @@ void loop() {
     case State::LOST_TRACK_OF_BOX: {
         // Wall-E kan ikke lenger se boksen
 
-        if (millis() - time_0 > 1000) {
+        // Gå til SEARCHING_FOR_BOX etter en stund
+        if (millis() - time_in_state > 1000) {
           kantteller = 0;
           state = State::SEARCHING_FOR_BOX;
         }
-        // TODO: spill av en trist lyd på buzzeren
 
-        // TODO: gå til SEARCHING_FOR_BOX etter en stund
+        // TODO: spill av en trist lyd på buzzeren
       } break;
 
     case State::MOVING_TO_BOX: {
         // Wall-E beveger seg sakte mot boksen
 
-        motors.setSpeeds(50, 50);
+        motors.setSpeeds(80, 80);
+
+        // Pass på at vi ikke forlater banen
+        if (line_sensor_values[2] > 900) {
+          state = State::RETURN_TO_CITY;
+        }
+
+        // Gjør kontinuerlige målinger med ultralydsensoren mens vi nærmer oss
         if (ultrasonic_distance_reading < 5) {
           state = State::GRABBING_BOX;
         }
 
         if ((ultrasonic_distance_reading > MAX_DISTANCE + 5) || ultrasonic_distance_reading < LOWER_DISTANCE) {
           state = State::LOST_TRACK_OF_BOX;
-          time_0 = millis();
         }
-
-        // TODO: gjør kontinuerlige målinger med ultralydsensoren mens vi nærmer oss
-
-        // TODO: gå til GRABBING_BOX når vi er nærme nok
       } break;
 
     case State::GRABBING_BOX: {
         // Wall-E griper tak i boksen.
 
         state = State::MOVE_TO_BORDER;
-        
-        // TODO: når gripeprosedyren er ferdig, gå til MOVE_TO_BORDER
-        // TODO: eventuelt, om vi tror vi mista boksen, gå til LOST_TRACK_OF_BOX
       } break;
 
     case State::MOVE_TO_BORDER: {
         // Wall-E tar med seg boksen ut til linja
 
-        motors.setSpeeds(50, 50);
-
-        if (line_sensor_values[2] > 900) {
+        motors.setSpeeds(120, 120);
+    
+        if (line_sensor_values[2] > QTR_THRESHOLD) {
           // Vi fant kanten
           state = State::RETURN_TO_STATION;
         }
-
-        // TODO: når gripeprosedyren er ferdig, gå til MOVE_TO_BORDER
       } break;
 
     case State::RETURN_TO_STATION: {
@@ -378,9 +382,13 @@ void loop() {
         motors.setSpeeds(left_speed, right_speed);
 
         // Ser etter den svarte boksen
-        if (line_sensor_values[0] > 900 && line_sensor_values[4] > 900) {
+        if (line_sensor_values[0] > QTR_THRESHOLD && line_sensor_values[4] > QTR_THRESHOLD) {
           // Vi fant den svarte boksen (ladestasjonen)
-          state = State::REFUELING;
+
+          // Luker ut falske positive med å legge inn en delay
+          if (millis() - time_in_state > 2000) {
+            state = State::REFUELING;
+          }
         }
       } break;
 
@@ -392,10 +400,10 @@ void loop() {
           batteryLife += 3;
         }
 
+        // Dra tilbake når batteriet er fullt
         if (batteryLife >= 2000) {
-          
+          state = State::RETURN_TO_CITY;
         }
-        batteryLife = 2000;
       } break;
 
     case State::STOPPED: {
@@ -414,12 +422,18 @@ void loop() {
       } break;
 
     case State::RETURN_TO_CITY: {
-        motors.setSpeeds(-300, -300);
 
-        if (millis() - time_in_state > 3000) {
+        if (millis() - time_in_state > 2500) {
+          // Snur litt rundt
+          motors.setSpeeds(-200, 200);
+        } else {
+          motors.setSpeeds(-300, -300);
+        }
+
+        if (millis() - time_in_state > 2800) {
           state = State::SEARCHING_FOR_BOX;
         }
-    } break;
+      } break;
   }
 
   ///////////////////////////////////////////////////////////////////////////////
