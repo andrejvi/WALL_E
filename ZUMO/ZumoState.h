@@ -16,7 +16,8 @@ enum ZumoState : uint8_t {
   RETURN_TO_STATION,
   STOPPED,
   REFUELING,
-  FOLLOW_LINE
+  FOLLOW_LINE,
+  RETURN_TO_CITY
 };
 
 
@@ -52,6 +53,8 @@ String zumo_state_to_str(ZumoState state) {
       return "REFUELING";
     case ZumoState::FOLLOW_LINE:
       return "FOLLOW_LINE";
+    case ZumoState::RETURN_TO_CITY:
+      return "RETURN_TO_CITY";
 
     default:
       return "unknown state";

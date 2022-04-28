@@ -328,12 +328,12 @@ void loop() {
     case State::MOVING_TO_BOX: {
         // Wall-E beveger seg sakte mot boksen
 
-        motors.setSpeeds(100, 100);
+        motors.setSpeeds(50, 50);
         if (ultrasonic_distance_reading < 5) {
           state = State::GRABBING_BOX;
         }
 
-        if ((ultrasonic_distance_reading < MAX_DISTANCE + 5) || ultrasonic_distance_reading > LOWER_DISTANCE) {
+        if ((ultrasonic_distance_reading > MAX_DISTANCE + 5) || ultrasonic_distance_reading < LOWER_DISTANCE) {
           state = State::LOST_TRACK_OF_BOX;
           time_0 = millis();
         }
@@ -345,10 +345,9 @@ void loop() {
 
     case State::GRABBING_BOX: {
         // Wall-E griper tak i boksen.
-        motors.setSpeeds(400, 400);
-        if ((line_sensor_values[0] > 900) || (line_sensor_values[NUM_SENSORS - 1] > 900)){
-          state = State::SEARCHING_FOR_BOX;
-        }
+
+        state = State::MOVE_TO_BORDER;
+        
         // TODO: når gripeprosedyren er ferdig, gå til MOVE_TO_BORDER
         // TODO: eventuelt, om vi tror vi mista boksen, gå til LOST_TRACK_OF_BOX
       } break;
@@ -356,27 +355,48 @@ void loop() {
     case State::MOVE_TO_BORDER: {
         // Wall-E tar med seg boksen ut til linja
 
+        motors.setSpeeds(50, 50);
+
+        if (line_sensor_values[2] > 900) {
+          // Vi fant kanten
+          state = State::RETURN_TO_STATION;
+        }
+
         // TODO: når gripeprosedyren er ferdig, gå til MOVE_TO_BORDER
       } break;
 
     case State::RETURN_TO_STATION: {
         // Wall-E følger linja tilbake til ladestasjonen
 
-        // TODO: følg linja, slik som i FOLLOW_LINE
-        // TODO: i motsetning til som i FOLLOW_LINE  må vi stoppe når vi kommer
-        //       frem til ladestasjonen.
+
+        // Følger linja hele veien til ladestasjonen
+        int16_t error = line_position - 2000;
+        int32_t speed_difference = pid.GetOutput(error);
+
+        left_speed = constrain((max_speed + speed_difference), -max_speed / 3, max_speed);
+        right_speed = constrain((max_speed - speed_difference), -max_speed / 3, max_speed);
+        motors.setSpeeds(left_speed, right_speed);
+
+        // Ser etter den svarte boksen
+        if (line_sensor_values[0] > 900 && line_sensor_values[4] > 900) {
+          // Vi fant den svarte boksen (ladestasjonen)
+          state = State::REFUELING;
+        }
       } break;
 
     case State::REFUELING: {
         // Wall-E er på ladestasjonen og fyller opp batteriene
         // TODO: start opp igjen når batteriene er fulle
 
-        for(int i = 0; i>=20; i+=100){
-          batteryLife += i;
-          delay(100);
-          }
+        if (batteryLife < 2000) {
+          batteryLife += 3;
+        }
+
+        if (batteryLife >= 2000) {
+          
+        }
         batteryLife = 2000;
-      } break; 
+      } break;
 
     case State::STOPPED: {
         // Wall-E står stille
@@ -392,6 +412,14 @@ void loop() {
         right_speed = constrain((max_speed - speed_difference), -max_speed / 3, max_speed);
         motors.setSpeeds(left_speed, right_speed);
       } break;
+
+    case State::RETURN_TO_CITY: {
+        motors.setSpeeds(-300, -300);
+
+        if (millis() - time_in_state > 3000) {
+          state = State::SEARCHING_FOR_BOX;
+        }
+    } break;
   }
 
   ///////////////////////////////////////////////////////////////////////////////
@@ -403,6 +431,7 @@ void loop() {
 
 
   if (state_has_changed) {
+    Serial.print("state has changed");
     time_in_state = millis();
     require_package_transmission = true;
 
