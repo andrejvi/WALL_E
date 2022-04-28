@@ -25,7 +25,7 @@ const uint8_t TRIG_PIN = 14;
 const uint8_t ECHO_PIN = 17;
 const uint8_t SERVO_PIN = 13;
 const uint8_t PACKAGE_SIZE = sizeof(Package);
-#define NUM_SENSORS 3
+#define NUM_SENSORS 5
 const int8_t LCD_UPDATE_DELAY_MS = 10;
 const unsigned long CALIBRATION_TIME_MS = 4000;
 const unsigned long DISTANCE_SENSOR_TIMEOUT_US = 3000; // Gir oss ca 39 cm range
@@ -259,14 +259,15 @@ void loop() {
           state = State::SCANNING_FOR_BOX;
         }
         searching(line_sensor_values[NUM_SENSORS]);
+        batteryLevel(counts_no_reset);
 
         float avg_speed = speedmeter(countsLeft, countsRight);
 
-        if (batteryLevel(counts_no_reset) < LOW_BATTERY) {
+        if (batteryLife < LOW_BATTERY) {
           // Kjør til ladestasjon
           state = State::RETURN_TO_STATION;
         }
-        else if (batteryLevel(counts_no_reset) == 0) {
+        else if (batteryLife == 0) {
           //dødt batteri
           state = State::STOPPED;
         }
@@ -370,11 +371,11 @@ void loop() {
         // Wall-E er på ladestasjonen og fyller opp batteriene
         // TODO: start opp igjen når batteriene er fulle
 
-       /* for(int i = 0; i>20; i+=100;){
+        for(int i = 0; i>=20; i+=100){
           batteryLife += i;
           delay(100);
           }
-        batteryLife = 2000;*/
+        batteryLife = 2000;
       } break; 
 
     case State::STOPPED: {

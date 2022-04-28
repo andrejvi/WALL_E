@@ -8,7 +8,7 @@ extern Zumo32U4Motors motors;
 extern Zumo32U4LineSensors line_sensors;
 
 // Variabler
-#define NUM_SENSORS 3
+#define NUM_SENSORS 5
 extern int16_t line_sensor_values[NUM_SENSORS];
 extern int kantteller;
 
