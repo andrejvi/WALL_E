@@ -3,7 +3,7 @@
 #include "BatteryLevel.h"
 #include "speedmeter.h"
 
-float batteryLife = 2000; // Total batteri i [mAh]
+//float batteryLife = 2000; // Total batteri i [mAh]
 
 int batteryLevel(float counts_no_reset){ // Funksjon for batterinivå
   batteryLife -= (0.001 * counts_no_reset); // hastigheten batteriet forbrukes med, basert på fart.

@@ -94,6 +94,7 @@ float countsRight;
 float counts_no_reset;
 uint8_t serial_buffer[sizeof(local_package)];
 int kantteller;
+float batteryLife = 2000;
 
 
 float distance_reading() {
@@ -376,6 +377,7 @@ void loop() {
     case State::REFUELING: {
         // Wall-E er på ladestasjonen og fyller opp batteriene
         // TODO: start opp igjen når batteriene er fulle
+        batteryLife = 2000;
       } break;
 
     case State::STOPPED: {
