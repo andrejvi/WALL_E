@@ -12,8 +12,6 @@
 
 //Biblioteker:
 #include <Wire.h> //Init
-#include <Servo.h>
-#include "EEPROM.h" //EEPROM: et minne der variabler er lagret selv når Zumo er skrudd av.
 #include <Zumo32U4.h> //Zumo bibliotek
 #include "BatteryLevel.h" //Batterifunksjoner
 #include "speedmeter.h" //Speedmeter
@@ -34,7 +32,6 @@
 // Konstanter
 const uint8_t TRIG_PIN = 14;
 const uint8_t ECHO_PIN = 17;
-const uint8_t SERVO_PIN = 13;
 const uint8_t PACKAGE_SIZE = sizeof(Package);
 #define NUM_SENSORS 5
 const int8_t LCD_UPDATE_DELAY_MS = 10;
@@ -78,7 +75,6 @@ Zumo32U4LineSensors line_sensors;
 Zumo32U4Motors motors;
 Zumo32U4Encoders encoders;
 Zumo32U4Buzzer buzzer;
-//Servo servo;
 State state = State::RESET;
 State state_prev;
 PidRegulator pid;
@@ -90,7 +86,6 @@ Package local_package;
 bool linesensors_calibrated_since_last_powerup = false;
 bool state_has_changed;
 bool require_package_transmission;
-uint16_t cycle_counter = 0;
 unsigned long time_in_state;
 unsigned long time_0;
 unsigned long time_since_transmission;
@@ -150,10 +145,7 @@ bool receive_serial_package(uint8_t serial_buffer[PACKAGE_SIZE]) {
 
 
 void setup() {
-  pinMode(SERVO_PIN, OUTPUT);
-  //servo.attach(SERVO_PIN);
   line_sensors.initFiveSensors();
-  //proxSensors.initThreeSensors();
 
   Serial1.begin(115200);
   if (DEBUG_PRINT_TO_SERIAL) Serial.begin(9600);
@@ -190,10 +182,8 @@ void loop() {
 
   // Oppdaterer sensormålinger
   line_position = line_sensors.readLine(line_sensor_values);
-  //ultrasonic_distance_reading = ultrasonic();
   ultrasonic_distance_reading = distance_reading();
   float avg_speed = abs(speedmeter(countsLeft, countsRight));
-  Serial.println(distance_reading());
 
 
   if ((uint8_t)(millis() - lastDisplayTime) >= 100)
@@ -483,8 +473,4 @@ void loop() {
     require_package_transmission = false;
     time_since_transmission = millis();
   }
-
-
-  // Plusser på "1" til "cycle_counter", med mindre den er MAX_INT, da går den til 0
-  cycle_counter = (cycle_counter == 65535) ? 0 : cycle_counter + 1;
 }
