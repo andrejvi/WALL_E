@@ -26,8 +26,8 @@
 #define PACKAGE_START_BYTE 0b00111100   // "<"
 #define PACKAGE_STOP_BYTE  0b00111110   // ">"
 
-// Debug-printing over seriell, kommenter ut for å deaktivere
-#define DEBUG_PRINT_TO_SERIAL
+// Debug-printing over seriell
+#define DEBUG_PRINT_TO_SERIAL true
 
 // Konstanter
 #define NUM_SENSORS 5
