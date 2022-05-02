@@ -1,6 +1,6 @@
 /* Wall-E
     Kode for Zumo32U4 - Gruppeprosjekt vår 2022.
-    
+
     Prosedyre: ZUMO kjører rundt innenfor en innhegning av svart teip og rydder
                halvlitersbokser til det er tomt.
 
@@ -371,7 +371,7 @@ void loop() {
         // Wall-E tar med seg boksen ut til linja
 
         motors.setSpeeds(120, 120);
-    
+
         if (line_sensor_values[2] > QTR_THRESHOLD) {
           // Vi fant kanten
           state = State::RETURN_TO_STATION;
@@ -415,7 +415,7 @@ void loop() {
 
     case State::STOPPED: {
         // Wall-E har stoppet opp
-        
+
         // TODO: Spill av en alarmlyd eller liknende på buzzeren
       } break;
 
