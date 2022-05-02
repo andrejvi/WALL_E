@@ -30,10 +30,10 @@
 #define DEBUG_PRINT_TO_SERIAL
 
 // Konstanter
+#define NUM_SENSORS 5
 const uint8_t TRIG_PIN = 14;
 const uint8_t ECHO_PIN = 17;
 const uint8_t PACKAGE_SIZE = sizeof(Package);
-#define NUM_SENSORS 5
 const int8_t LCD_UPDATE_DELAY_MS = 10;
 const unsigned long CALIBRATION_TIME_MS = 4000;
 const unsigned long DISTANCE_SENSOR_TIMEOUT_US = 3000; // Gir oss ca 39 cm range
@@ -169,10 +169,10 @@ void loop() {
 
     // Leser over de variablene fra pakka vi ønsker å bruke i zumoen
     if (received_package.update_zumo_state) state = received_package.zumo_state;
-    if (received_package.update_Kp) pid.Kp = received_package.Kp;
-    if (received_package.update_Ki) pid.Ki = received_package.Ki;
-    if (received_package.update_Kd) pid.Kd = received_package.Kd;
-    if (received_package.update_Kd) pid.Kd = received_package.Kd;
+    if (received_package.update_Kp)         pid.Kp = received_package.Kp;
+    if (received_package.update_Ki)         pid.Ki = received_package.Ki;
+    if (received_package.update_Kd)         pid.Kd = received_package.Kd;
+    if (received_package.update_Kd)         pid.Kd = received_package.Kd;
 
     // Vi ønsker å sende et svar for å bekrefte til den andre ESPen
     require_package_transmission = true;
@@ -237,7 +237,6 @@ void loop() {
           linesensors_calibrated_since_last_powerup = true;
           state = State::WAIT_FOR_START_SIGNAL;
         }
-
       } break;
 
     case State::WAIT_FOR_START_SIGNAL: {
@@ -247,8 +246,6 @@ void loop() {
         if (millis() - time_in_state > 2000) {
           state = State::SEARCHING_FOR_BOX;
         }
-
-
       } break;
 
     case State::SEARCHING_FOR_BOX: {
@@ -277,7 +274,6 @@ void loop() {
           time_0 = millis();
           state = State::FOUND_BOX;
         }
-
       } break;
 
     case State::SCANNING_FOR_BOX: {
@@ -288,7 +284,6 @@ void loop() {
           kantteller = 0;
           state = State::SEARCHING_FOR_BOX;
         }
-
 
         if ((LOWER_DISTANCE < ultrasonic_distance_reading) && (ultrasonic_distance_reading < 38)) {
           time_0 = millis();
