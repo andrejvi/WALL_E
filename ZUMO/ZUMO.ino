@@ -69,6 +69,8 @@ struct PidRegulator {
 };
 
 
+enum Direction { LEFT_TO_RIGHT, RIGHT_TO_LEFT };
+
 
 // Instansiering av globale objekter
 Zumo32U4LineSensors line_sensors;
@@ -102,6 +104,7 @@ float counts_no_reset;
 uint8_t serial_buffer[sizeof(local_package)];
 int kantteller;
 float batteryLife = 2000;
+Direction found_box_from_direction;
 
 
 bool receive_serial_package(uint8_t serial_buffer[PACKAGE_SIZE]) {
@@ -287,7 +290,8 @@ void loop() {
 
         if ((LOWER_DISTANCE < ultrasonic_distance_reading) && (ultrasonic_distance_reading < 38)) {
           time_0 = millis();
-          state = State::FOUND_BOX;
+          found_box_from_direction = Direction::RIGHT_TO_LEFT;
+          state = State::TURNING_TO_BOX;
         }
       } break;
 
@@ -296,13 +300,32 @@ void loop() {
         buzzer.playFrequency(440, 50, 50);
 
         if (millis() - time_0 > 1000) {
-          state = State::MOVING_TO_BOX;
+          state = State::TURNING_TO_BOX;
           time_0 = millis();
         }
       } break;
 
     case State::TURNING_TO_BOX: {
         // Wall-E snur seg mot boksen
+
+        switch (found_box_from_direction) {
+          case Direction::LEFT_TO_RIGHT:
+            motors.setSpeeds(100, -100);
+            break;
+          case Direction::RIGHT_TO_LEFT:
+            motors.setSpeeds(-100, 100);
+            break;
+        }
+
+        // Vi snur oss i 100 ms etter først å ha detektert boksen. Dette er for å passe
+        // på at Wall-E peker rett mot boksen og ikke kjører på den sidelengs så den kanter
+        if (millis() - time_in_state > 100) {
+          if ((LOWER_DISTANCE < ultrasonic_distance_reading) && (ultrasonic_distance_reading < 38)) {
+            state = State::MOVING_TO_BOX;
+          } else {
+            state = State::LOST_TRACK_OF_BOX;
+          }
+        }
       } break;
 
     case State::LOST_TRACK_OF_BOX: {
