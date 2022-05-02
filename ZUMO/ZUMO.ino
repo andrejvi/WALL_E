@@ -28,6 +28,9 @@
 #define PACKAGE_START_BYTE 0b00111100   // "<"
 #define PACKAGE_STOP_BYTE  0b00111110   // ">"
 
+// Debug-printing over seriell, kommenter ut for å deaktivere
+#define DEBUG_PRINT_TO_SERIAL
+
 // Konstanter
 const uint8_t TRIG_PIN = 14;
 const uint8_t ECHO_PIN = 17;
@@ -49,7 +52,7 @@ const uint16_t QTR_THRESHOLD = 900;
 
 
 
-struct PID {
+struct PidRegulator {
   // PID-regulator. Forsterkningskonstanter Kp, Ki og Kd er
   //    gitt i tideler.
 
@@ -78,7 +81,7 @@ Zumo32U4Buzzer buzzer;
 //Servo servo;
 State state = State::RESET;
 State state_prev;
-PID pid;
+PidRegulator pid;
 Package received_package;
 Package local_package;
 
@@ -126,21 +129,10 @@ bool receive_serial_package(uint8_t serial_buffer[PACKAGE_SIZE]) {
         serial_buffer[index] = received_byte;
       }
 
-      if (received_byte == PACKAGE_STOP_BYTE) {
-        receive_in_progress = false;
-        index = 0;
-
+      if ((received_byte == PACKAGE_STOP_BYTE) || (index == PACKAGE_SIZE)) {
         // Vi har mottatt pakke, kopierer nå over i "received_package"
         memcpy(&received_package, serial_buffer, PACKAGE_SIZE);
-        return true;
-      }
 
-      if (index == PACKAGE_SIZE) {
-        receive_in_progress = false;
-        index = 0;
-
-        // Vi har mottatt pakke, kopierer nå over i "received_package"
-        memcpy(&received_package, serial_buffer, PACKAGE_SIZE);
         return true;
       }
 
@@ -158,12 +150,13 @@ bool receive_serial_package(uint8_t serial_buffer[PACKAGE_SIZE]) {
 
 
 void setup() {
-  Serial1.begin(115200);
   pinMode(SERVO_PIN, OUTPUT);
   //servo.attach(SERVO_PIN);
   line_sensors.initFiveSensors();
   //proxSensors.initThreeSensors();
-  Serial.begin(9600);
+
+  Serial1.begin(115200);
+  if (DEBUG_PRINT_TO_SERIAL) Serial.begin(9600);
 
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
@@ -431,11 +424,12 @@ void loop() {
     case State::RETURN_TO_CITY: {
         // Wall-E rygger tilbake til byen
 
-        if (millis() - time_in_state > 2500) {
-          // Snur litt rundt
-          motors.setSpeeds(-200, 200);
-        } else {
+        if (millis() - time_in_state < 2500) {
+          // Rygger kjapt tilbake til byen
           motors.setSpeeds(-300, -300);
+        } else {
+          // Etter å ha rygga i 2500 ms snur vi litt rundt
+          motors.setSpeeds(-200, 200);
         }
 
         if (millis() - time_in_state > 2800) {
@@ -453,7 +447,11 @@ void loop() {
 
 
   if (state_has_changed) {
-    Serial.print("state has changed");
+    if (DEBUG_PRINT_TO_SERIAL) {
+      Serial.print("state has changed to ");
+      Serial.println(zumo_state_to_str(state));
+    }
+
     time_in_state = millis();
     require_package_transmission = true;
 
@@ -479,7 +477,8 @@ void loop() {
     local_package.start_byte = PACKAGE_START_BYTE;
 
     Serial1.write((uint8_t*)&local_package, PACKAGE_SIZE);
-    Serial.write((uint8_t*)&local_package, PACKAGE_SIZE);
+
+    if (DEBUG_PRINT_TO_SERIAL) Serial.write((uint8_t*)&local_package, PACKAGE_SIZE);
 
     require_package_transmission = false;
     time_since_transmission = millis();
