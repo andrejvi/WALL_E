@@ -1,6 +1,14 @@
 /* Wall-E
     Kode for Zumo32U4 - Gruppeprosjekt vår 2022.
+    
+    Prosedyre: ZUMO kjører rundt innenfor en innhegning av svart teip og rydder
+               halvlitersbokser til det er tomt.
+
+    Hardware:  ZUMO32u4 beltebilrobot
+               HCSR04 ultrasonisk distansesensor
+               Kretskort for seriellkommunikasjon med TTGO-ESP32 over RX/TX
 */
+
 
 //Biblioteker:
 #include <Wire.h> //Init
@@ -137,12 +145,14 @@ bool receive_serial_package(uint8_t serial_buffer[PACKAGE_SIZE]) {
       }
 
       if (index > PACKAGE_SIZE) {
+        // Ingen stopbyte, noe har gått galt
         return false;
       }
 
       index ++;
     }
   }
+  // Ingen pakke har kommet inn
   return false;
 }
 
@@ -169,9 +179,8 @@ void loop() {
   require_package_transmission = false;
 
 
+  // Ser om det kommer en ny pakke fra ESP
   if (receive_serial_package(serial_buffer)) {
-    // Vi har mottatt ny "received_package".
-
 
     // Leser over de variablene fra pakka vi ønsker å bruke i zumoen
     if (received_package.update_zumo_state) state = received_package.zumo_state;
@@ -186,6 +195,7 @@ void loop() {
 
   state_prev = state;
 
+  // Oppdaterer sensormålinger
   line_position = line_sensors.readLine(line_sensor_values);
   //ultrasonic_distance_reading = ultrasonic();
   ultrasonic_distance_reading = distance_reading();
@@ -216,8 +226,9 @@ void loop() {
   ///////////////////////////////////////////////////////////////////////////////
   switch (state) {
     case State::RESET: {
-        // Wall-E commit sudoku
+        // Wall-E restarter
 
+        // Resetter alle verdier
         kantteller = 0;
 
         // Kjører kalibrering om det ikke allerede er gjort
@@ -260,11 +271,12 @@ void loop() {
     case State::SEARCHING_FOR_BOX: {
         // Wall-E kjører rundt inne i byen og ser etter bokser.
 
-        //funksjon som kjører rundt innenfor en border
         if (kantteller >= 5) {
-          //søk med servo
+          // Etter å ha truffet veggen fem ganger, prøv å scanne
           state = State::SCANNING_FOR_BOX;
         }
+
+        // Funksjon som kjører rundt innenfor en border
         searching(line_sensor_values[NUM_SENSORS]);
 
         float avg_speed = speedmeter(countsLeft, countsRight);
@@ -286,7 +298,7 @@ void loop() {
       } break;
 
     case State::SCANNING_FOR_BOX: {
-        // Wall-E scanner med servo
+        // Wall-E scanner etter bokser ved å snu rundt i ring
         motors.setSpeeds(-100, 100);
 
         if (millis() - time_in_state > 5000) {
@@ -313,11 +325,6 @@ void loop() {
 
     case State::TURNING_TO_BOX: {
         // Wall-E snur seg mot boksen
-
-        // TODO: her kan vi bruke ultralydsensoren (posisjonert rett frem) til
-        //       å ta målinger mens vi snur oss sakte rundt. Når vi tror vi
-        //       peker rett mot boksen, gå til MOVING_TO_BOX
-        //       Om vi bruker for lang tid uten å se noen boks, gå til LOST_TRACK_OF_BOX.
       } break;
 
     case State::LOST_TRACK_OF_BOX: {
@@ -347,6 +354,7 @@ void loop() {
           state = State::GRABBING_BOX;
         }
 
+        // Sjekk om vi fortsatt ser boksen
         if ((ultrasonic_distance_reading > MAX_DISTANCE + 5) || ultrasonic_distance_reading < LOWER_DISTANCE) {
           state = State::LOST_TRACK_OF_BOX;
         }
@@ -372,7 +380,6 @@ void loop() {
     case State::RETURN_TO_STATION: {
         // Wall-E følger linja tilbake til ladestasjonen
 
-
         // Følger linja hele veien til ladestasjonen
         int16_t error = line_position - 2000;
         int32_t speed_difference = pid.GetOutput(error);
@@ -381,9 +388,9 @@ void loop() {
         right_speed = constrain((max_speed - speed_difference), -max_speed / 3, max_speed);
         motors.setSpeeds(left_speed, right_speed);
 
-        // Ser etter den svarte boksen
+        // Ser etter den svarte stopplinja
         if (line_sensor_values[0] > QTR_THRESHOLD && line_sensor_values[4] > QTR_THRESHOLD) {
-          // Vi fant den svarte boksen (ladestasjonen)
+          // Vi fant den svarte stopplinja (ladestasjonen)
 
           // Luker ut falske positive med å legge inn en delay
           if (millis() - time_in_state > 2000) {
@@ -394,7 +401,6 @@ void loop() {
 
     case State::REFUELING: {
         // Wall-E er på ladestasjonen og fyller opp batteriene
-        // TODO: start opp igjen når batteriene er fulle
 
         if (batteryLife < 2000) {
           batteryLife += 3;
@@ -407,8 +413,9 @@ void loop() {
       } break;
 
     case State::STOPPED: {
-        // Wall-E står stille
-        // TODO: start opp igjen på grunnlag av visse kriterier
+        // Wall-E har stoppet opp
+        
+        // TODO: Spill av en alarmlyd eller liknende på buzzeren
       } break;
 
     case State::FOLLOW_LINE: {
@@ -422,6 +429,7 @@ void loop() {
       } break;
 
     case State::RETURN_TO_CITY: {
+        // Wall-E rygger tilbake til byen
 
         if (millis() - time_in_state > 2500) {
           // Snur litt rundt
@@ -449,20 +457,23 @@ void loop() {
     time_in_state = millis();
     require_package_transmission = true;
 
+    // Hver gang vi endrer tilstand skrur vi motorene av
     motors.setSpeeds(0, 0);
   }
 
   if ((millis() - time_since_transmission) > MS_BETWEEN_AUTOMATIC_PACKAGE_TRANSMISSIONS) {
+    // Sender pakker etter regelmessige tidsintervaller
     require_package_transmission = true;
   }
 
   if (require_package_transmission) {
+    // Legger ny info over i pakke og sender til ESP over Serial1
     local_package.stop_byte = PACKAGE_STOP_BYTE;
     local_package.zumo_state = state;
     local_package.Kp = pid.Kp;
     local_package.Ki = pid.Ki;
     local_package.Kd = pid.Kd;
-    local_package.battery_level = batteryLife;     // TODO: legg inn ordentlige verdier her
+    local_package.battery_level = batteryLife;
     local_package.speed = avg_speed;
     local_package.ultrasonic_distance_reading = ultrasonic_distance_reading;
     local_package.start_byte = PACKAGE_START_BYTE;
