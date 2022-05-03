@@ -105,6 +105,8 @@ uint8_t serial_buffer[sizeof(local_package)];
 int kantteller;
 float batteryLife = 2000;
 Direction found_box_from_direction;
+int chargingCount;
+int batteryHealthPresentage = 100;
 
 
 bool receive_serial_package(uint8_t serial_buffer[PACKAGE_SIZE]) {
@@ -203,6 +205,7 @@ void loop() {
 
   // Vi bruker batteri
   batteryLevel(counts_no_reset);
+  batteryHealth(chargingCount, counts_no_reset);
 
 
   ///////////////////////////////////////////////////////////////////////////////
@@ -409,6 +412,7 @@ void loop() {
 
         // Dra tilbake når batteriet er fullt
         if (batteryLife >= 2000) {
+          chargingCount += 1;
           state = State::RETURN_TO_CITY;
         }
       } break;

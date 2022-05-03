@@ -15,3 +15,9 @@ int batteryLevel(float counts_no_reset){ // Funksjon for batterinivå
     return 0;
     }
   }
+
+int batteryHealth(float chargingCount, float counts_no_reset){
+    // Batterihelse basert på avstand kjørt og antall ladesykluser
+    batteryHealthPresentage = 100 - (chargingCount * (counts_no_reset * 0.001));
+    return batteryHealthPresentage;
+  }
