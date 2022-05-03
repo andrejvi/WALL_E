@@ -119,8 +119,8 @@ bool receive_serial_package(uint8_t serial_buffer[PACKAGE_SIZE]) {
   // Returnerer enten "false" om vi ikke har fått inn pakke, eller
   // "true" dersom en ny pakke er skrevet over på "received_package".
 
-  static bool receive_in_progress = false;
-  static byte index = 0;
+  bool receive_in_progress = false;
+  byte index = 0;
   uint8_t received_byte;
 
   while (Serial1.available() > 0) {
