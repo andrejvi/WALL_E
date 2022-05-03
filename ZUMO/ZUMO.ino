@@ -46,6 +46,8 @@ const int16_t LOW_BATTERY = 200;
 const float LOWER_DISTANCE = 2.0;
 const float MAX_DISTANCE = 20.0;
 const uint16_t QTR_THRESHOLD = 900;
+int ladePris= 3; // koster 3kr/mAh
+int startSaldo = 10000; // Starter med 10tusen kroner
 
 
 
@@ -106,6 +108,7 @@ int kantteller;
 float batteryLife = 2000;
 Direction found_box_from_direction;
 int chargingCount;
+int mAhCharged;
 int batteryHealthPresentage = 100;
 
 
@@ -407,7 +410,8 @@ void loop() {
         // Wall-E er på ladestasjonen og fyller opp batteriene
 
         if (batteryLife < 2000) {
-          batteryLife += 3;
+          batteryLife += 1;
+          mAhCharged += 1;
         }
 
         // Dra tilbake når batteriet er fullt
