@@ -13,6 +13,7 @@
 //Biblioteker:
 #include <Wire.h> //Init
 #include <Zumo32U4.h> //Zumo bibliotek
+#include <Zumo32U4Buzzer.h>
 #include "BatteryLevel.h" //Batterifunksjoner
 #include "speedmeter.h" //Speedmeter
 #include "searching.h" //søkefunksjon
@@ -239,6 +240,7 @@ void loop() {
 
     case State::CALIBRATE_LINESENSORS: {
         // Wall-E kjører kalibreringsprosedyren
+        buzzer.play("!T240 L8 agafaea dac+adaea fa<aa<bac#a dac#adaea f4");
         if (state_has_changed) {
           time_0 = millis();
         }
@@ -312,7 +314,7 @@ void loop() {
 
     case State::FOUND_BOX: {
         // Wall-E fant en boks
-        buzzer.playFrequency(440, 50, 50);
+        buzzer.play("!T240 L8 cdeacdea");
 
         if (millis() - time_0 > 1000) {
           state = State::TURNING_TO_BOX;
@@ -417,7 +419,7 @@ void loop() {
 
     case State::REFUELING: {
         // Wall-E er på ladestasjonen og fyller opp batteriene
-
+        buzzer.play("!T240 L4 cdef");
         if (batteryLife < 2000) {
           batteryLife += 1;
           mAhCharged += 1;
