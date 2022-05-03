@@ -40,7 +40,7 @@ const unsigned long CALIBRATION_TIME_MS = 4000;
 const unsigned long DISTANCE_SENSOR_TIMEOUT_US = 3000; // Gir oss ca 39 cm range
 const int8_t PID_DEFAULT_P = 2;
 const int8_t PID_DEFAULT_I = 0;
-const int8_t PID_DEFAULT_D = 6;
+const int8_t PID_DEFAULT_D = 8;
 const uint16_t MS_BETWEEN_AUTOMATIC_PACKAGE_TRANSMISSIONS = 100;
 const int16_t MAX_SPEED = 270;
 const int16_t LOW_BATTERY = 200;
@@ -67,7 +67,7 @@ struct PidRegulator {
     int32_t _D = Kd * (new_error - last_error);
     last_error = new_error;
 
-    return (_P + _I + _D) / 10;
+    return (_P + _I + _D);
   }
 };
 
@@ -258,7 +258,11 @@ void loop() {
 
         // Mens vi debugger går vi til SEARCHING etter en stund
         if (millis() - time_in_state > 2000) {
-          state = State::SEARCHING_FOR_BOX;
+          // GÅR DIREKTE TIL SEARCHING FOR BOX
+          //state = State::SEARCHING_FOR_BOX;
+
+          // DEBUGGING Linjefølger
+          state = State::FOLLOW_LINE;
         }
       } break;
 
