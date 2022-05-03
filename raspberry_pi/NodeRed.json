@@ -17,20 +17,22 @@
         "width": 0,
         "height": 0,
         "passthru": false,
-        "label": "zumo_state1",
+        "label": "State: Reset",
         "tooltip": "",
         "color": "",
         "bgcolor": "",
         "className": "",
         "icon": "",
-        "payload": "<0b1>",
+        "payload": "[60,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,62]",
         "payloadType": "bin",
-        "topic": "topic",
+        "topic": "state",
         "topicType": "msg",
-        "x": 550,
-        "y": 380,
+        "x": 750,
+        "y": 340,
         "wires": [
-            []
+            [
+                "94643d2b07904131"
+            ]
         ]
     },
     {
@@ -43,20 +45,22 @@
         "width": 0,
         "height": 0,
         "passthru": false,
-        "label": "zumo_state2",
+        "label": "State: Move to Border",
         "tooltip": "",
         "color": "",
         "bgcolor": "",
         "className": "",
         "icon": "",
-        "payload": "<",
+        "payload": "[60,10,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,62]",
         "payloadType": "bin",
-        "topic": "topic",
+        "topic": "state",
         "topicType": "msg",
-        "x": 550,
-        "y": 420,
+        "x": 720,
+        "y": 380,
         "wires": [
-            []
+            [
+                "94643d2b07904131"
+            ]
         ]
     },
     {
@@ -82,7 +86,7 @@
         "y": 100,
         "wires": [
             [
-                "5e050103be3f9436"
+                "cd222a72bc657f1d"
             ]
         ]
     },
@@ -108,7 +112,9 @@
         "x": 550,
         "y": 140,
         "wires": [
-            []
+            [
+                "a99ca7750ab25f4e"
+            ]
         ]
     },
     {
@@ -133,7 +139,9 @@
         "x": 550,
         "y": 180,
         "wires": [
-            []
+            [
+                "ab764ad3fe3595b7"
+            ]
         ]
     },
     {
@@ -146,20 +154,22 @@
         "width": 0,
         "height": 0,
         "passthru": false,
-        "label": "zumo_state3",
+        "label": "State: Follow line",
         "tooltip": "",
         "color": "",
         "bgcolor": "",
         "className": "",
         "icon": "",
-        "payload": "3",
-        "payloadType": "str",
-        "topic": "topic",
+        "payload": "[60,14,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,62]",
+        "payloadType": "bin",
+        "topic": "state",
         "topicType": "msg",
-        "x": 550,
-        "y": 460,
+        "x": 730,
+        "y": 420,
         "wires": [
-            []
+            [
+                "94643d2b07904131"
+            ]
         ]
     },
     {
@@ -173,7 +183,7 @@
         "height": 0,
         "gtype": "wave",
         "title": "Battery Level",
-        "label": "Charge",
+        "label": "mAh",
         "format": "{{value}}",
         "min": 0,
         "max": "4096",
@@ -391,21 +401,6 @@
         ]
     },
     {
-        "id": "2125d0e8895df80f",
-        "type": "serial in",
-        "z": "6cda6112e84e70ba",
-        "name": "",
-        "serial": "b593cb0f343bda3d",
-        "x": 75,
-        "y": 140,
-        "wires": [
-            [
-                "4af22dee6feefea7"
-            ]
-        ],
-        "l": false
-    },
-    {
         "id": "b4f047dbbc06ba66",
         "type": "ui_chart",
         "z": "6cda6112e84e70ba",
@@ -472,8 +467,8 @@
         "z": "6cda6112e84e70ba",
         "name": "",
         "serial": "b593cb0f343bda3d",
-        "x": 1210,
-        "y": 340,
+        "x": 1030,
+        "y": 140,
         "wires": []
     },
     {
@@ -641,49 +636,75 @@
         ]
     },
     {
-        "id": "ec035c1fb5b6f971",
-        "type": "serial out",
-        "z": "6cda6112e84e70ba",
-        "name": "",
-        "serial": "b593cb0f343bda3d",
-        "x": 870,
-        "y": 260,
-        "wires": []
-    },
-    {
-        "id": "5e050103be3f9436",
+        "id": "cd222a72bc657f1d",
         "type": "function",
         "z": "6cda6112e84e70ba",
         "name": "",
-        "func": "var num = msg.topic;\nmsg.topic= num.toString() +\">\";\nreturn msg;",
+        "func": "\n\n\n\nbuf = Buffer.from([60, 0, 0, 0, 0, 0, 0, 0,\n                    0, 0, 0, 0, 0, 0, 0, 0,\n                    0, 62])\nbuf[0] = 60;\n\n\nbuf[2] = msg.payload;\nbuf[14] = 1;\n\nmsg = { payload: buf };\n\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 780,
-        "y": 140,
+        "x": 740,
+        "y": 100,
         "wires": [
             [
-                "f45cf9167b28840c"
+                "94643d2b07904131"
             ]
         ]
     },
     {
-        "id": "f45cf9167b28840c",
-        "type": "debug",
+        "id": "a99ca7750ab25f4e",
+        "type": "function",
         "z": "6cda6112e84e70ba",
         "name": "",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 940,
+        "func": "\n\n\n\nbuf = Buffer.from([60, 0, 0, 0, 0, 0, 0, 0,\n                    0, 0, 0, 0, 0, 0, 0, 0,\n                    0, 62])\nbuf[0] = 60;\n\n\nbuf[3] = msg.payload;\nbuf[15] = 1;\n\nmsg = { payload: buf };\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 740,
         "y": 140,
-        "wires": []
+        "wires": [
+            [
+                "94643d2b07904131"
+            ]
+        ]
+    },
+    {
+        "id": "ab764ad3fe3595b7",
+        "type": "function",
+        "z": "6cda6112e84e70ba",
+        "name": "",
+        "func": "\n\n\n\nbuf = Buffer.from([60, 0, 0, 0, 0, 0, 0, 0,\n                    0, 0, 0, 0, 0, 0, 0, 0,\n                    0, 62])\nbuf[0] = 60;\n\n\nbuf[4] = msg.payload;\nbuf[16] = 1;\n\nmsg = { payload: buf };\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 740,
+        "y": 180,
+        "wires": [
+            [
+                "94643d2b07904131"
+            ]
+        ]
+    },
+    {
+        "id": "c276c2d635980119",
+        "type": "serial in",
+        "z": "6cda6112e84e70ba",
+        "name": "",
+        "serial": "b593cb0f343bda3d",
+        "x": 70,
+        "y": 140,
+        "wires": [
+            [
+                "4af22dee6feefea7"
+            ]
+        ]
     },
     {
         "id": "6a0c6287d038e996",
