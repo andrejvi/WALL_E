@@ -33,6 +33,9 @@ typedef struct Package {
   bool update_Ki;
   bool update_Kd;
 
+  uint16_t battery_real;
+  uint16_t bank_balance;
+
   // Byte som indikerer at melding stopper. Denne setter vi til ">" i Zumo.ino
   uint8_t stop_byte;
 } Package;

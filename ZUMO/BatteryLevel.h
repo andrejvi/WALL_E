@@ -8,4 +8,4 @@ extern int chargingCount;
 extern int batteryHealthPresentage;
 
 int batteryLevel(float counts_no_reset);
-int batteryHealth(float chargingCount, float counts_no_reset);
+uint16_t batteryHealth();

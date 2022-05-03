@@ -110,7 +110,7 @@ int kantteller;
 float batteryLife = 2000;
 Direction found_box_from_direction;
 int chargingCount;
-int mAhCharged;
+int mAhCharged = 0;
 uint16_t saldo;
 int batteryHealthPresentage = 100;
 
@@ -220,7 +220,6 @@ void loop() {
 
   // Vi bruker batteri
   batteryLevel(counts_no_reset);
-  batteryHealth(chargingCount, counts_no_reset);
 
   //WALLE bruker spenn
   saldo = Saldo(mAhCharged, ladePris, startSaldo);
@@ -512,6 +511,8 @@ void loop() {
     local_package.battery_level = batteryLife;
     local_package.speed = avg_speed;
     local_package.ultrasonic_distance_reading = ultrasonic_distance_reading;
+    local_package.battery_real = batteryHealth();
+    local_package.bank_balance = Saldo(mAhCharged, ladePris, startSaldo);
     local_package.start_byte = PACKAGE_START_BYTE;
 
     Serial1.write((uint8_t*)&local_package, PACKAGE_SIZE);
