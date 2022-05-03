@@ -39,10 +39,10 @@ const uint8_t PACKAGE_SIZE = sizeof(Package);
 const int8_t LCD_UPDATE_DELAY_MS = 10;
 const unsigned long CALIBRATION_TIME_MS = 4000;
 const unsigned long DISTANCE_SENSOR_TIMEOUT_US = 3000; // Gir oss ca 39 cm range
-const int8_t PID_DEFAULT_P = 2;
+const int8_t PID_DEFAULT_P = 9;
 const int8_t PID_DEFAULT_I = 0;
-const int8_t PID_DEFAULT_D = 8;
-const uint16_t MS_BETWEEN_AUTOMATIC_PACKAGE_TRANSMISSIONS = 100;
+const int8_t PID_DEFAULT_D = 17;
+const uint16_t MS_BETWEEN_AUTOMATIC_PACKAGE_TRANSMISSIONS = 150;
 const int16_t MAX_SPEED = 270;
 const int16_t LOW_BATTERY = 200;
 const float LOWER_DISTANCE = 2.0;
@@ -68,7 +68,7 @@ struct PidRegulator {
     int32_t _D = Kd * (new_error - last_error);
     last_error = new_error;
 
-    return (_P + _I + _D);
+    return (_P + _I + _D) / 5;
   }
 };
 
@@ -173,6 +173,7 @@ void loop() {
   //                                                                           //
   ///////////////////////////////////////////////////////////////////////////////
   require_package_transmission = false;
+  state_prev = state;
 
 
   // Ser om det kommer en ny pakke fra ESP
@@ -189,7 +190,6 @@ void loop() {
     require_package_transmission = true;
   }
 
-  state_prev = state;
 
   // Oppdaterer sensormålinger
   line_position = line_sensors.readLine(line_sensor_values);
@@ -240,13 +240,13 @@ void loop() {
 
     case State::CALIBRATE_LINESENSORS: {
         // Wall-E kjører kalibreringsprosedyren
-        buzzer.play("!T240 L8 agafaea dac+adaea fa<aa<bac#a dac#adaea f4");
+        //buzzer.play("!T240 L8 agafaea dac+adaea fa<aa<bac#a dac#adaea f4");
         if (state_has_changed) {
           time_0 = millis();
         }
 
         // Kjør rundt i ring i 4 sekunder
-        motors.setSpeeds(-100, 100);
+        motors.setSpeeds(-200, 200);
         line_sensors.calibrate();
 
         if ((millis() - time_0) > CALIBRATION_TIME_MS) {
