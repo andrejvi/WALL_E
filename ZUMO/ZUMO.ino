@@ -19,6 +19,7 @@
 #include "ZumoState.h"
 #include "Packet.h"
 #include "ultrasonic.h"
+#include "Bank.h"
 
 #define State ZumoState
 
@@ -109,6 +110,7 @@ float batteryLife = 2000;
 Direction found_box_from_direction;
 int chargingCount;
 int mAhCharged;
+uint16_t saldo;
 int batteryHealthPresentage = 100;
 
 
@@ -209,6 +211,9 @@ void loop() {
   // Vi bruker batteri
   batteryLevel(counts_no_reset);
   batteryHealth(chargingCount, counts_no_reset);
+
+  //WALLE bruker spenn
+  saldo = Saldo(mAhCharged, ladePris, startSaldo);
 
 
   ///////////////////////////////////////////////////////////////////////////////

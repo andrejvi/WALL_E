@@ -1,7 +1,9 @@
 #pragma once
 
+#include "Bank.h"
+
 extern int mAhCharged;
 extern int ladePris;
 extern int startSaldo;
 
-Saldo(int mAhCharged, int ladePris);
+int Saldo(int mAhCharged, int ladePris, int startSaldo);
