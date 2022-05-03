@@ -1,0 +1,738 @@
+[
+    {
+        "id": "6cda6112e84e70ba",
+        "type": "tab",
+        "label": "Data package",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "9b7e688f003570c7",
+        "type": "ui_button",
+        "z": "6cda6112e84e70ba",
+        "name": "",
+        "group": "6a0c6287d038e996",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "zumo_state1",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "<0b1>",
+        "payloadType": "bin",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 550,
+        "y": 380,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d7c994e4d2373fae",
+        "type": "ui_button",
+        "z": "6cda6112e84e70ba",
+        "name": "",
+        "group": "6a0c6287d038e996",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "zumo_state2",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "<",
+        "payloadType": "bin",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 550,
+        "y": 420,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "7784aad34ba60830",
+        "type": "ui_slider",
+        "z": "6cda6112e84e70ba",
+        "name": "PID slider Kp",
+        "label": "Kp",
+        "tooltip": "",
+        "group": "6a0c6287d038e996",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "outs": "end",
+        "topic": "topic",
+        "topicType": "msg",
+        "min": 0,
+        "max": 10,
+        "step": 1,
+        "className": "",
+        "x": 550,
+        "y": 100,
+        "wires": [
+            [
+                "5e050103be3f9436"
+            ]
+        ]
+    },
+    {
+        "id": "5558463db5b75434",
+        "type": "ui_slider",
+        "z": "6cda6112e84e70ba",
+        "name": "PID slider Ki",
+        "label": "Ki",
+        "tooltip": "",
+        "group": "6a0c6287d038e996",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "outs": "end",
+        "topic": "topic",
+        "topicType": "msg",
+        "min": 0,
+        "max": 10,
+        "step": 1,
+        "className": "",
+        "x": 550,
+        "y": 140,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "5fbe645919d0a1d0",
+        "type": "ui_slider",
+        "z": "6cda6112e84e70ba",
+        "name": "PID slider Kd",
+        "label": "Kd",
+        "tooltip": "",
+        "group": "6a0c6287d038e996",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "outs": "end",
+        "topic": "topic",
+        "topicType": "msg",
+        "min": 0,
+        "max": 10,
+        "step": 1,
+        "className": "",
+        "x": 550,
+        "y": 180,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "082686ecdb20fa10",
+        "type": "ui_button",
+        "z": "6cda6112e84e70ba",
+        "name": "",
+        "group": "6a0c6287d038e996",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "zumo_state3",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "3",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 550,
+        "y": 460,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "e8734f9b81bff3e5",
+        "type": "ui_gauge",
+        "z": "6cda6112e84e70ba",
+        "name": "",
+        "group": "0e8ead19744d6604",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "gtype": "wave",
+        "title": "Battery Level",
+        "label": "Charge",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "4096",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "className": "",
+        "x": 550,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "dea81fcc6a7b5c1c",
+        "type": "ui_gauge",
+        "z": "6cda6112e84e70ba",
+        "name": "Speedometer",
+        "group": "0e8ead19744d6604",
+        "order": 6,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Speed",
+        "label": "cm/s",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "40",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "5",
+        "seg2": "10",
+        "className": "",
+        "x": 560,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "4af22dee6feefea7",
+        "type": "buffer-parser",
+        "z": "6cda6112e84e70ba",
+        "name": "",
+        "data": "payload",
+        "dataType": "msg",
+        "specification": "spec",
+        "specificationType": "ui",
+        "items": [
+            {
+                "type": "byte",
+                "name": "Start byte",
+                "offset": 0,
+                "length": 1,
+                "offsetbit": 0,
+                "scale": "1",
+                "mask": ""
+            },
+            {
+                "type": "uint8",
+                "name": "zumo_state",
+                "offset": 1,
+                "length": 1,
+                "offsetbit": 0,
+                "scale": "1",
+                "mask": ""
+            },
+            {
+                "type": "uint8",
+                "name": "Kp",
+                "offset": 2,
+                "length": 1,
+                "offsetbit": 0,
+                "scale": "1",
+                "mask": ""
+            },
+            {
+                "type": "uint8",
+                "name": "Ki",
+                "offset": 3,
+                "length": 1,
+                "offsetbit": 0,
+                "scale": "1",
+                "mask": ""
+            },
+            {
+                "type": "uint8",
+                "name": "Kd",
+                "offset": 4,
+                "length": 1,
+                "offsetbit": 0,
+                "scale": "1",
+                "mask": ""
+            },
+            {
+                "type": "uint16le",
+                "name": "battery level",
+                "offset": 5,
+                "length": 1,
+                "offsetbit": 0,
+                "scale": "1",
+                "mask": ""
+            },
+            {
+                "type": "uint16le",
+                "name": "speed",
+                "offset": 7,
+                "length": 1,
+                "offsetbit": 0,
+                "scale": "1",
+                "mask": ""
+            },
+            {
+                "type": "floatle",
+                "name": "distance",
+                "offset": 9,
+                "length": 1,
+                "offsetbit": 0,
+                "scale": "1",
+                "mask": ""
+            },
+            {
+                "type": "uint8",
+                "name": "update_zumo_state",
+                "offset": 13,
+                "length": 1,
+                "offsetbit": 0,
+                "scale": "1",
+                "mask": ""
+            },
+            {
+                "type": "uint8",
+                "name": "update_Kp",
+                "offset": 13,
+                "length": 1,
+                "offsetbit": 1,
+                "scale": "1",
+                "mask": ""
+            },
+            {
+                "type": "uint8",
+                "name": "update_Ki",
+                "offset": 13,
+                "length": 1,
+                "offsetbit": 2,
+                "scale": "1",
+                "mask": ""
+            },
+            {
+                "type": "uint8",
+                "name": "updateKd",
+                "offset": 13,
+                "length": 1,
+                "offsetbit": 3,
+                "scale": "1",
+                "mask": ""
+            },
+            {
+                "type": "byte",
+                "name": "End_Byte",
+                "offset": 14,
+                "length": 1,
+                "offsetbit": 3,
+                "scale": "1",
+                "mask": ""
+            }
+        ],
+        "swap1": "",
+        "swap2": "",
+        "swap3": "",
+        "swap1Type": "swap",
+        "swap2Type": "swap",
+        "swap3Type": "swap",
+        "msgProperty": "payload",
+        "msgPropertyType": "str",
+        "resultType": "value",
+        "resultTypeType": "return",
+        "multipleResult": true,
+        "fanOutMultipleResult": true,
+        "setTopic": true,
+        "outputs": 13,
+        "x": 270,
+        "y": 140,
+        "wires": [
+            [],
+            [
+                "e2c6015de6234e99"
+            ],
+            [
+                "7784aad34ba60830"
+            ],
+            [
+                "5558463db5b75434"
+            ],
+            [
+                "5fbe645919d0a1d0"
+            ],
+            [
+                "e8734f9b81bff3e5"
+            ],
+            [
+                "dea81fcc6a7b5c1c"
+            ],
+            [
+                "b4f047dbbc06ba66"
+            ],
+            [],
+            [],
+            [],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "2125d0e8895df80f",
+        "type": "serial in",
+        "z": "6cda6112e84e70ba",
+        "name": "",
+        "serial": "b593cb0f343bda3d",
+        "x": 75,
+        "y": 140,
+        "wires": [
+            [
+                "4af22dee6feefea7"
+            ]
+        ],
+        "l": false
+    },
+    {
+        "id": "b4f047dbbc06ba66",
+        "type": "ui_chart",
+        "z": "6cda6112e84e70ba",
+        "name": "Distance",
+        "group": "6a0c6287d038e996",
+        "order": 6,
+        "width": 0,
+        "height": 0,
+        "label": "Distance",
+        "chartType": "bar",
+        "legend": "false",
+        "xformat": "HH:mm:ss",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "0",
+        "ymax": "40",
+        "removeOlder": 1,
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "className": "",
+        "x": 540,
+        "y": 300,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "6b37ef40d7b51f3c",
+        "type": "ui_text",
+        "z": "6cda6112e84e70ba",
+        "group": "0e8ead19744d6604",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "zumo-state:",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "className": "",
+        "x": 730,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "94643d2b07904131",
+        "type": "serial out",
+        "z": "6cda6112e84e70ba",
+        "name": "",
+        "serial": "b593cb0f343bda3d",
+        "x": 1210,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "e2c6015de6234e99",
+        "type": "change",
+        "z": "6cda6112e84e70ba",
+        "name": "",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "0",
+                "fromt": "num",
+                "to": "RESET",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "1",
+                "fromt": "num",
+                "to": "CALIBRATE_LINESENSORS",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "2",
+                "fromt": "num",
+                "to": "WAIT_FOR_START_SIGNAL",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "3",
+                "fromt": "num",
+                "to": "SEARCHING_FOR_BOX",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "4",
+                "fromt": "num",
+                "to": "SCANNING_FOR_BOX",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "5",
+                "fromt": "num",
+                "to": "FOUND_BOX",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "6",
+                "fromt": "num",
+                "to": "TURNING_TO_BOX",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "7",
+                "fromt": "num",
+                "to": "LOST_TRACK_OF_BOX",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "8",
+                "fromt": "num",
+                "to": "MOVING_TO_BOX",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "9",
+                "fromt": "num",
+                "to": "GRABBING_BOX",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "10",
+                "fromt": "num",
+                "to": "MOVE_TO_BORDER",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "11",
+                "fromt": "num",
+                "to": "RETURN_TO_STATION",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "12",
+                "fromt": "num",
+                "to": "STOPPED",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "13",
+                "fromt": "num",
+                "to": "REFUELING",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "14",
+                "fromt": "num",
+                "to": "FOLLOW_LINE",
+                "tot": "str"
+            },
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "15",
+                "fromt": "num",
+                "to": "RETURN_TO_CITY",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 540,
+        "y": 60,
+        "wires": [
+            [
+                "6b37ef40d7b51f3c"
+            ]
+        ]
+    },
+    {
+        "id": "ec035c1fb5b6f971",
+        "type": "serial out",
+        "z": "6cda6112e84e70ba",
+        "name": "",
+        "serial": "b593cb0f343bda3d",
+        "x": 870,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "5e050103be3f9436",
+        "type": "function",
+        "z": "6cda6112e84e70ba",
+        "name": "",
+        "func": "var num = msg.topic;\nmsg.topic= num.toString() +\">\";\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 780,
+        "y": 140,
+        "wires": [
+            [
+                "f45cf9167b28840c"
+            ]
+        ]
+    },
+    {
+        "id": "f45cf9167b28840c",
+        "type": "debug",
+        "z": "6cda6112e84e70ba",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 940,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "6a0c6287d038e996",
+        "type": "ui_group",
+        "name": "Outputs",
+        "tab": "f2c186630555f0b4",
+        "order": 1,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "0e8ead19744d6604",
+        "type": "ui_group",
+        "name": "Serial inputs",
+        "tab": "f2c186630555f0b4",
+        "order": 2,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "b593cb0f343bda3d",
+        "type": "serial-port",
+        "serialport": "/dev/ttyUSB0",
+        "serialbaud": "115200",
+        "databits": "8",
+        "parity": "none",
+        "stopbits": "1",
+        "waitfor": "<",
+        "dtr": "none",
+        "rts": "none",
+        "cts": "none",
+        "dsr": "none",
+        "newline": ">",
+        "bin": "bin",
+        "out": "char",
+        "addchar": "",
+        "responsetimeout": "10000"
+    },
+    {
+        "id": "f2c186630555f0b4",
+        "type": "ui_tab",
+        "name": "Package",
+        "icon": "dashboard",
+        "order": 1,
+        "disabled": false,
+        "hidden": false
+    }
+]
