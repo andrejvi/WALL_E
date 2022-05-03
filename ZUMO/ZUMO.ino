@@ -47,7 +47,7 @@ const int16_t MAX_SPEED = 270;
 const int16_t LOW_BATTERY = 200;
 const float LOWER_DISTANCE = 2.0;
 const float MAX_DISTANCE = 20.0;
-const uint16_t QTR_THRESHOLD = 900;
+const uint16_t QTR_THRESHOLD = 990;
 int ladePris= 3; // koster 3kr/mAh
 int startSaldo = 10000; // Starter med 10tusen kroner
 
@@ -155,6 +155,14 @@ bool receive_serial_package(uint8_t serial_buffer[PACKAGE_SIZE]) {
 }
 
 
+bool detect_box(int16_t max_distance) {
+  if ((LOWER_DISTANCE < ultrasonic_distance_reading) && (ultrasonic_distance_reading < max_distance)) {
+    return true;
+  } else
+  return false;
+}
+
+
 void setup() {
   line_sensors.initFiveSensors();
 
@@ -173,7 +181,6 @@ void loop() {
   //                                                                           //
   ///////////////////////////////////////////////////////////////////////////////
   require_package_transmission = false;
-  state_prev = state;
 
 
   // Ser om det kommer en ny pakke fra ESP
@@ -190,6 +197,8 @@ void loop() {
     require_package_transmission = true;
   }
 
+
+  state_prev = state;
 
   // Oppdaterer sensormålinger
   line_position = line_sensors.readLine(line_sensor_values);
@@ -261,10 +270,7 @@ void loop() {
         // Mens vi debugger går vi til SEARCHING etter en stund
         if (millis() - time_in_state > 2000) {
           // GÅR DIREKTE TIL SEARCHING FOR BOX
-          //state = State::SEARCHING_FOR_BOX;
-
-          // DEBUGGING Linjefølger
-          state = State::FOLLOW_LINE;
+          state = State::SEARCHING_FOR_BOX;
         }
       } break;
 
@@ -290,7 +296,9 @@ void loop() {
           state = State::STOPPED;
         }
 
-        if ((LOWER_DISTANCE < ultrasonic_distance_reading) && (ultrasonic_distance_reading < MAX_DISTANCE)) {
+        //if ((LOWER_DISTANCE < ultrasonic_distance_reading) && (ultrasonic_distance_reading < MAX_DISTANCE)) {
+        
+        if (detect_box(30)){
           time_0 = millis();
           state = State::FOUND_BOX;
         }
@@ -298,14 +306,15 @@ void loop() {
 
     case State::SCANNING_FOR_BOX: {
         // Wall-E scanner etter bokser ved å snu rundt i ring
-        motors.setSpeeds(-100, 100);
+        motors.setSpeeds(-200, 200);
 
         if (millis() - time_in_state > 5000) {
           kantteller = 0;
           state = State::SEARCHING_FOR_BOX;
         }
 
-        if ((LOWER_DISTANCE < ultrasonic_distance_reading) && (ultrasonic_distance_reading < 38)) {
+        if (detect_box(38)){
+       // if ((LOWER_DISTANCE < ultrasonic_distance_reading) && (ultrasonic_distance_reading < 38)) {
           time_0 = millis();
           found_box_from_direction = Direction::RIGHT_TO_LEFT;
           state = State::TURNING_TO_BOX;
@@ -327,17 +336,18 @@ void loop() {
 
         switch (found_box_from_direction) {
           case Direction::LEFT_TO_RIGHT:
-            motors.setSpeeds(100, -100);
+            motors.setSpeeds(200, -200);
             break;
           case Direction::RIGHT_TO_LEFT:
-            motors.setSpeeds(-100, 100);
+            motors.setSpeeds(-200, 200);
             break;
         }
 
         // Vi snur oss i 100 ms etter først å ha detektert boksen. Dette er for å passe
         // på at Wall-E peker rett mot boksen og ikke kjører på den sidelengs så den kanter
         if (millis() - time_in_state > 100) {
-          if ((LOWER_DISTANCE < ultrasonic_distance_reading) && (ultrasonic_distance_reading < 38)) {
+          //if ((LOWER_DISTANCE < ultrasonic_distance_reading) && (ultrasonic_distance_reading < 38)) {
+          if (detect_box(38)){
             state = State::MOVING_TO_BOX;
           } else {
             state = State::LOST_TRACK_OF_BOX;
@@ -360,7 +370,7 @@ void loop() {
     case State::MOVING_TO_BOX: {
         // Wall-E beveger seg sakte mot boksen
 
-        motors.setSpeeds(80, 80);
+        motors.setSpeeds(130, 130);
 
         // Pass på at vi ikke forlater banen
         if (line_sensor_values[2] > 900) {
@@ -435,6 +445,7 @@ void loop() {
     case State::STOPPED: {
         // Wall-E har stoppet opp
 
+        motors.setSpeeds(0, 0);
         // TODO: Spill av en alarmlyd eller liknende på buzzeren
       } break;
 
