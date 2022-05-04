@@ -27,6 +27,7 @@
 // Konfigurerer pakke
 #define PACKAGE_START_BYTE 0b00111100   // "<"
 #define PACKAGE_STOP_BYTE  0b00111110   // ">"
+const uint8_t PACKAGE_SIZE = sizeof(Package);
 
 // Debug-printing over seriell
 #define DEBUG_PRINT_TO_SERIAL true
@@ -38,21 +39,30 @@
 #define NUM_SENSORS 5
 const uint8_t TRIG_PIN = 14;
 const uint8_t ECHO_PIN = 17;
-const uint8_t PACKAGE_SIZE = sizeof(Package);
 const int8_t LCD_UPDATE_DELAY_MS = 10;
-const unsigned long CALIBRATION_TIME_MS = 4000;
+const unsigned long CALIBRATION_TIME_MS = 2000;
 const unsigned long DISTANCE_SENSOR_TIMEOUT_US = 3000; // Gir oss ca 39 cm range
-const int8_t PID_DEFAULT_P = 6;
-const int8_t PID_DEFAULT_I = 0;
-const int8_t PID_DEFAULT_D = 4;
 const uint16_t MS_BETWEEN_AUTOMATIC_PACKAGE_TRANSMISSIONS = 150;
-const int16_t MAX_SPEED = 270;
+const int8_t PID_DEFAULT_P = 2;
+const int8_t PID_DEFAULT_I = 0;
+const int8_t PID_DEFAULT_D = 6;
 const int16_t LOW_BATTERY = 200;
 const float LOWER_DISTANCE = 2.0;
 const float MAX_DISTANCE = 20.0;
-const uint16_t QTR_THRESHOLD = 800;
 int ladePris = 3; // koster 3kr/mAh
 int startSaldo = 10000; // Starter med 10tusen kroner
+
+const int16_t QTR_THRESHOLD = 800;
+
+// Farter
+const int16_t MAX_SPEED = 400;
+const int16_t NORMAL_SPEED = 200;
+const int16_t BACKING_SPEED = 190;
+const int16_t APPROACH_SPEED = 150;
+const int16_t TURN_SPEED = 150;
+const int16_t SCAN_SPEED = 120;
+const int16_t LINE_FOLLOW_SPEED = 200;
+const int16_t RETURN_SPEED = 200;
 
 
 
@@ -101,6 +111,7 @@ bool left_sensor_hit = false;
 unsigned long time_in_state;
 unsigned long time_0;
 unsigned long time_since_transmission;
+unsigned long time_moving_away;
 int16_t line_sensor_values[NUM_SENSORS];
 int16_t line_position;
 float ultrasonic_distance_reading;
@@ -164,8 +175,9 @@ bool receive_serial_package(uint8_t serial_buffer[PACKAGE_SIZE]) {
 bool detect_box(int16_t max_distance) {
   if ((LOWER_DISTANCE < ultrasonic_distance_reading) && (ultrasonic_distance_reading < max_distance)) {
     return true;
-  } else
+  } else {
     return false;
+  }
 }
 
 
@@ -187,7 +199,7 @@ void loop() {
   //                                                                           //
   ///////////////////////////////////////////////////////////////////////////////
   require_package_transmission = false;
-
+  state_prev = state;
 
   // Ser om det kommer en ny pakke fra ESP
   if (receive_serial_package(serial_buffer)) {
@@ -208,6 +220,7 @@ void loop() {
 
   // Oppdaterer sensormålinger
   line_position = line_sensors.readLine(line_sensor_values);
+  line_sensors.readCalibrated(line_sensor_values);
   ultrasonic_distance_reading = distance_reading();
   float avg_speed = abs(speedmeter(countsLeft, countsRight));
 
@@ -260,7 +273,7 @@ void loop() {
         }
 
         // Kjør rundt i ring i 4 sekunder
-        motors.setSpeeds(-200, 200);
+        motors.setSpeeds(-NORMAL_SPEED, NORMAL_SPEED);
         line_sensors.calibrate();
 
         if ((millis() - time_0) > CALIBRATION_TIME_MS) {
@@ -282,66 +295,25 @@ void loop() {
     case State::SEARCHING_FOR_BOX: {
         // Wall-E kjører rundt inne i byen og ser etter bokser.
 
+        motors.setSpeeds(NORMAL_SPEED, NORMAL_SPEED);
 
         if (kantteller >= 5) {
           // Etter å ha truffet veggen fem ganger, prøv å scanne
           state = State::SCANNING_FOR_BOX;
         }
 
-        // Funksjon som kjører rundt innenfor en border
-        //searching(line_sensor_values[NUM_SENSORS]);
 
-        line_sensors.read(line_sensor_values);
-        
         // Ser om vi har truffet kanten
         if ((line_sensor_values[0] > QTR_THRESHOLD) || (line_sensor_values[4] > QTR_THRESHOLD)) {
 
           // Vi traff kanten, sjekk hvilken sensor som traff
-          if (line_sensor_values[0] > QTR_THRESHOLD) left_sensor_hit = true;
-          if (line_sensor_values[4] > QTR_THRESHOLD) right_sensor_hit = true;
+          if (line_sensor_values[0] > QTR_THRESHOLD) last_turn_direction = Direction::RIGHT_TO_LEFT;
+          if (line_sensor_values[4] > QTR_THRESHOLD) last_turn_direction = Direction::LEFT_TO_RIGHT;
 
-          // Starter en timer
-          time_0 = millis();
-          moving_away_from_wall = true;
+          kantteller += 1;
+
+          state = State::BACKING_FROM_BORDER;
         }
-
-
-        if (moving_away_from_wall) {
-
-          // Mellom 0 ms og 400 ms, rygger bakover
-          if (millis() - time_0 < 400) {
-            motors.setSpeeds(-200, -200);
-          }
-
-
-          // Mellom 400 og 1000 ms, snu rundt
-          else if ((millis() - time_0 >= 400) && (millis() - time_0 < 1000)) {
-
-            // Sjekk hvilken vei vi skal snu
-            if (left_sensor_hit) {
-              motors.setSpeeds(200, -200);
-              last_turn_direction = Direction::RIGHT_TO_LEFT;
-            }
-            if (right_sensor_hit) {
-              motors.setSpeeds(-200, 200);
-              last_turn_direction = Direction::LEFT_TO_RIGHT;
-            }
-          }
-
-          // Vi har rygga og snudd
-          else {
-            moving_away_from_wall = false;
-            right_sensor_hit = false;
-            left_sensor_hit = false;
-          }
-        }
-
-
-        // Kjører framover som vanlig
-        if (!moving_away_from_wall) {
-          motors.setSpeeds(200, 200);
-        }
-
 
         float avg_speed = speedmeter(countsLeft, countsRight);
 
@@ -354,24 +326,51 @@ void loop() {
           state = State::STOPPED;
         }
 
-        if (detect_box(30)) {
+        if (detect_box(20)) {
           time_0 = millis();
           state = State::FOUND_BOX;
         }
       } break;
 
+    case State::BACKING_FROM_BORDER: {
+        // Wall-E rygger vekk fra kanten
+
+        motors.setSpeeds(-BACKING_SPEED, -BACKING_SPEED);
+
+        if (millis() - time_in_state > 400) {
+          state = State::SMALL_TURN;
+        }
+      } break;
+
+    case State::SMALL_TURN: {
+        // Wall-E snur seg litt for å unngå å kjøre samme vei
+
+        if (last_turn_direction = Direction::RIGHT_TO_LEFT) {
+          motors.setSpeeds(TURN_SPEED, -TURN_SPEED);
+        }
+        if (last_turn_direction = Direction::LEFT_TO_RIGHT) {
+          motors.setSpeeds(-TURN_SPEED, TURN_SPEED);
+        }
+
+        if (millis() - time_in_state > 500) {
+          state = State::SEARCHING_FOR_BOX;
+        }
+      } break;
+
     case State::SCANNING_FOR_BOX: {
         // Wall-E scanner etter bokser ved å snu rundt i ring
-        motors.setSpeeds(-200, 200);
 
-        if (millis() - time_in_state > 5000) {
-          kantteller = 0;
+        kantteller = 0;
+
+        motors.setSpeeds(-SCAN_SPEED, SCAN_SPEED);
+
+        if (millis() - time_in_state > 3000) {
           state = State::SEARCHING_FOR_BOX;
         }
 
-        if (detect_box(38)) {
+        if (detect_box(35)) {
           time_0 = millis();
-          last_turn_direction = Direction::RIGHT_TO_LEFT;
+          last_turn_direction = Direction::LEFT_TO_RIGHT;
           state = State::TURNING_TO_BOX;
         }
       } break;
@@ -380,30 +379,29 @@ void loop() {
         // Wall-E fant en boks
         if (!SILENT) buzzer.play("!T240 L8 cdeacdea");
 
-        if (millis() - time_0 > 1000) {
-          state = State::TURNING_TO_BOX;
+        if (millis() - time_in_state > 1000) {
+          state = State::MOVING_TO_BOX;
           time_0 = millis();
         }
       } break;
 
     case State::TURNING_TO_BOX: {
-        // Wall-E snur seg mot boksen
+        // Wall-E snur seg den siste lille biten for å sentrere på boksen
 
         switch (last_turn_direction) {
           case Direction::RIGHT_TO_LEFT:
-            motors.setSpeeds(200, -200);
+            motors.setSpeeds(TURN_SPEED, -TURN_SPEED);
             break;
           case Direction::LEFT_TO_RIGHT:
-            motors.setSpeeds(-200, 200);
+            motors.setSpeeds(-TURN_SPEED, TURN_SPEED);
             break;
         }
 
         // Vi snur oss i 100 ms etter først å ha detektert boksen. Dette er for å passe
         // på at Wall-E peker rett mot boksen og ikke kjører på den sidelengs så den kanter
         if (millis() - time_in_state > 100) {
-          //if ((LOWER_DISTANCE < ultrasonic_distance_reading) && (ultrasonic_distance_reading < 38)) {
-          if (detect_box(38)) {
-            state = State::MOVING_TO_BOX;
+          if (detect_box(35)) {
+            state = State::FOUND_BOX;
           } else {
             state = State::LOST_TRACK_OF_BOX;
           }
@@ -425,7 +423,7 @@ void loop() {
     case State::MOVING_TO_BOX: {
         // Wall-E beveger seg sakte mot boksen
 
-        motors.setSpeeds(130, 130);
+        motors.setSpeeds(APPROACH_SPEED, APPROACH_SPEED);
 
         // Pass på at vi ikke forlater banen
         if (line_sensor_values[2] > 900) {
@@ -435,11 +433,6 @@ void loop() {
         // Gjør kontinuerlige målinger med ultralydsensoren mens vi nærmer oss
         if (ultrasonic_distance_reading < 5) {
           state = State::GRABBING_BOX;
-        }
-
-        // Sjekk om vi fortsatt ser boksen
-        if ((ultrasonic_distance_reading > MAX_DISTANCE + 5) || ultrasonic_distance_reading < LOWER_DISTANCE) {
-          state = State::LOST_TRACK_OF_BOX;
         }
       } break;
 
@@ -452,7 +445,7 @@ void loop() {
     case State::MOVE_TO_BORDER: {
         // Wall-E tar med seg boksen ut til linja
 
-        motors.setSpeeds(120, 120);
+        motors.setSpeeds(APPROACH_SPEED, APPROACH_SPEED);
 
         if (line_sensor_values[2] > QTR_THRESHOLD) {
           // Vi fant kanten
@@ -462,6 +455,8 @@ void loop() {
 
     case State::RETURN_TO_STATION: {
         // Wall-E følger linja tilbake til ladestasjonen
+
+        max_speed = LINE_FOLLOW_SPEED;
 
         // Følger linja hele veien til ladestasjonen
         int16_t error = line_position - 2000;
@@ -506,6 +501,7 @@ void loop() {
 
     case State::FOLLOW_LINE: {
         // Wall-E følger linje. Denne tilstanden er ment til debugging av linjefølgeren.
+        max_speed = LINE_FOLLOW_SPEED;
         int16_t error = line_position - 2000;
         int32_t speed_difference = pid.GetOutput(error);
 
@@ -519,10 +515,10 @@ void loop() {
 
         if (millis() - time_in_state < 2500) {
           // Rygger kjapt tilbake til byen
-          motors.setSpeeds(-300, -300);
+          motors.setSpeeds(-RETURN_SPEED, -RETURN_SPEED);
         } else {
           // Etter å ha rygga i 2500 ms snur vi litt rundt
-          motors.setSpeeds(-200, 200);
+          motors.setSpeeds(-TURN_SPEED, TURN_SPEED);
         }
 
         if (millis() - time_in_state > 2800) {

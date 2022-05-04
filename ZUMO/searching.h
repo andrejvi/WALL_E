@@ -7,7 +7,9 @@
 // Globale objekter
 extern Zumo32U4Motors motors;
 extern Zumo32U4LineSensors line_sensors;
-extern const uint16_t QTR_THRESHOLD;
+//extern const int16_t QTR_THRESHOLD;
+
+
 
 // Variabler
 #define NUM_SENSORS 5

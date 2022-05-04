@@ -8,7 +8,7 @@
 
 
 // VIKTIG! Denne linja er alt du trenger å endre for å flashe de to forskjellige ESP'ene.
-//#define IS_ZUMO     // Kommenter ut for å flashe RPi-ESP, behold den for å flashe ZUMO-ESP.
+#define IS_ZUMO     // Kommenter ut for å flashe RPi-ESP, behold den for å flashe ZUMO-ESP.
 
 
 /*
