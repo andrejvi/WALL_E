@@ -31,6 +31,9 @@
 // Debug-printing over seriell
 #define DEBUG_PRINT_TO_SERIAL true
 
+// Skru av eller på lyden
+#define SILENT true
+
 // Konstanter
 #define NUM_SENSORS 5
 const uint8_t TRIG_PIN = 14;
@@ -248,7 +251,7 @@ void loop() {
 
     case State::CALIBRATE_LINESENSORS: {
         // Wall-E kjører kalibreringsprosedyren
-        //buzzer.play("!T240 L8 agafaea dac+adaea fa<aa<bac#a dac#adaea f4");
+        if (!SILENT) buzzer.play("!T240 L8 agafaea dac+adaea fa<aa<bac#a dac#adaea f4");
         if (state_has_changed) {
           time_0 = millis();
         }
@@ -322,7 +325,7 @@ void loop() {
 
     case State::FOUND_BOX: {
         // Wall-E fant en boks
-        buzzer.play("!T240 L8 cdeacdea");
+        if (!SILENT) buzzer.play("!T240 L8 cdeacdea");
 
         if (millis() - time_0 > 1000) {
           state = State::TURNING_TO_BOX;
@@ -428,7 +431,7 @@ void loop() {
 
     case State::REFUELING: {
         // Wall-E er på ladestasjonen og fyller opp batteriene
-        buzzer.play("!T240 L4 cdef");
+        if (!SILENT) buzzer.play("!T240 L4 cdef");
         if (batteryLife < 2000) {
           batteryLife += 1;
           mAhCharged += 1;
