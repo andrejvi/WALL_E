@@ -59,7 +59,7 @@ const int16_t MAX_SPEED = 400;
 const int16_t NORMAL_SPEED = 200;
 const int16_t BACKING_SPEED = 190;
 const int16_t APPROACH_SPEED = 150;
-const int16_t TURN_SPEED = 150;
+const int16_t TURN_SPEED = 100;
 const int16_t SCAN_SPEED = 120;
 const int16_t LINE_FOLLOW_SPEED = 200;
 const int16_t RETURN_SPEED = 200;
@@ -352,7 +352,7 @@ void loop() {
           motors.setSpeeds(-TURN_SPEED, TURN_SPEED);
         }
 
-        if (millis() - time_in_state > 500) {
+        if (millis() - time_in_state > 1500) {
           state = State::SEARCHING_FOR_BOX;
         }
       } break;
